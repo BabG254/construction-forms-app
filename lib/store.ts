@@ -194,7 +194,7 @@ export const useAppStore = create<AppState>()(
       currentUser: mockUsers[0],
 
       // UI state
-      isOnline: true,
+      isOnline: typeof window !== 'undefined',
       isSyncing: false,
 
       // Actions
@@ -318,6 +318,7 @@ export const useAppStore = create<AppState>()(
         incidents: state.incidents,
         inspections: state.inspections,
       }),
+      skipHydration: typeof window === 'undefined',
     },
   ),
 )
