@@ -75,7 +75,14 @@ export function AttachmentUpload({ attachments, onChange, maxFiles = 10 }: Attac
                   <Icon className="h-5 w-5 text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{attachment.name}</p>
+                  <button
+                    type="button"
+                    className="text-sm font-medium truncate hover:underline text-left"
+                    onClick={() => window.open(attachment.url, "_blank")}
+                    title={t("action.view")}
+                  >
+                    {attachment.name}
+                  </button>
                   <p className="text-xs text-muted-foreground">{formatFileSize(attachment.size)}</p>
                 </div>
                 <Button

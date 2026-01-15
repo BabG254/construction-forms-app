@@ -1,7 +1,7 @@
 "use client"
 
 import { use } from "react"
-import { formatDistanceToNow, format } from "date-fns"
+import { format } from "date-fns"
 import { ClipboardCheck, Building, User, FileText, Check, X, Minus, Calendar, MessageSquare } from "lucide-react"
 import { AppShell } from "@/components/app-shell"
 import { FormHeader } from "@/components/forms/form-header"
@@ -9,8 +9,9 @@ import { FormSection } from "@/components/forms/form-section"
 import { InspectionSummary } from "@/components/forms/inspection-summary"
 import { Badge } from "@/components/ui/badge"
 import { useLocale } from "@/lib/locale-context"
+import { exportElementAsPdf } from "@/lib/pdf"
 import { useAppStore, inspectionSections } from "@/lib/store"
-import { cn } from "@/lib/utils"
+import { cn, distanceToNowLocalized, formatLocalized } from "@/lib/utils"
 
 const statusVariants = {
   draft: "bg-muted text-muted-foreground",
@@ -22,7 +23,7 @@ const statusVariants = {
 
 export default function InspectionDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
-  const { t } = useLocale()
+  const { t, locale } = useLocale()
   const { inspections, projects, users } = useAppStore()
 
   const inspection = inspections.find((i) => i.id === id)
@@ -31,7 +32,7 @@ export default function InspectionDetailPage({ params }: { params: Promise<{ id:
     return (
       <AppShell>
         <div className="flex items-center justify-center min-h-[50vh]">
-          <p className="text-muted-foreground">Inspection not found</p>
+          <p className="text-muted-foreground">{t("empty.notFound.inspection")}</p>
         </div>
       </AppShell>
     )
@@ -68,9 +69,13 @@ export default function InspectionDetailPage({ params }: { params: Promise<{ id:
 
   return (
     <AppShell>
-      <FormHeader title={inspection.documentTitle || "Inspection"} backHref="/inspections" onExportPdf={() => {}} />
+      <FormHeader
+        title={inspection.documentTitle || "Inspection"}
+        backHref="/inspections"
+        onExportPdf={() => exportElementAsPdf({ elementId: "form-detail", filename: `${(inspection.documentTitle || "Inspection")}-${locale}.pdf` })}
+      />
 
-      <div className="p-4 md:p-6 lg:p-8 max-w-4xl mx-auto space-y-6">
+      <div id="form-detail" className="p-4 md:p-6 lg:p-8 max-w-4xl mx-auto space-y-6">
         {/* Header info */}
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-primary/10">
@@ -84,7 +89,7 @@ export default function InspectionDetailPage({ params }: { params: Promise<{ id:
               </Badge>
             </div>
             <p className="text-sm text-muted-foreground mt-1">
-              Updated {formatDistanceToNow(new Date(inspection.updatedAt), { addSuffix: true })}
+              {t("common.updated", { distance: distanceToNowLocalized(new Date(inspection.updatedAt), locale) })}
             </p>
           </div>
         </div>
@@ -93,7 +98,7 @@ export default function InspectionDetailPage({ params }: { params: Promise<{ id:
         <InspectionSummary sections={inspectionSections} responses={inspection.responses} />
 
         {/* Details */}
-        <FormSection title="Details" collapsible={false}>
+        <FormSection title={t("section.details")} collapsible={false}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
               <Building className="h-5 w-5 text-muted-foreground" />
@@ -122,8 +127,8 @@ export default function InspectionDetailPage({ params }: { params: Promise<{ id:
             <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
               <Calendar className="h-5 w-5 text-muted-foreground" />
               <div>
-                <p className="text-xs text-muted-foreground">Created</p>
-                <p className="font-medium">{format(new Date(inspection.createdAt), "MMM d, yyyy")}</p>
+                <p className="text-xs text-muted-foreground">{t("inspection.createdLabel")}</p>
+                <p className="font-medium">{formatLocalized(new Date(inspection.createdAt), "MMM d, yyyy", locale)}</p>
               </div>
             </div>
           </div>
@@ -149,7 +154,7 @@ export default function InspectionDetailPage({ params }: { params: Promise<{ id:
               title={t(section.titleKey as any)}
               description={
                 hasNonConforming
-                  ? `${sectionResponses.filter((r) => r.response === "non-conforming").length} issues`
+                  ? t("inspection.issuesCount", { count: sectionResponses.filter((r) => r.response === "non-conforming").length })
                   : undefined
               }
             >

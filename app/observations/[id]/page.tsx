@@ -2,15 +2,16 @@
 
 import { use } from "react"
 import { useRouter } from "next/navigation"
-import { formatDistanceToNow, format } from "date-fns"
+import { format } from "date-fns"
 import { Eye, Calendar, User, Building, AlertTriangle, FileText } from "lucide-react"
 import { AppShell } from "@/components/app-shell"
 import { FormHeader } from "@/components/forms/form-header"
 import { FormSection } from "@/components/forms/form-section"
 import { Badge } from "@/components/ui/badge"
 import { useLocale } from "@/lib/locale-context"
+import { exportElementAsPdf } from "@/lib/pdf"
 import { useAppStore } from "@/lib/store"
-import { cn } from "@/lib/utils"
+import { cn, distanceToNowLocalized, formatLocalized } from "@/lib/utils"
 
 const statusVariants = {
   draft: "bg-muted text-muted-foreground",
@@ -30,7 +31,7 @@ const priorityVariants = {
 export default function ObservationDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const router = useRouter()
-  const { t } = useLocale()
+  const { t, locale } = useLocale()
   const { observations, projects, users } = useAppStore()
 
   const observation = observations.find((o) => o.id === id)
@@ -39,7 +40,7 @@ export default function ObservationDetailPage({ params }: { params: Promise<{ id
     return (
       <AppShell>
         <div className="flex items-center justify-center min-h-[50vh]">
-          <p className="text-muted-foreground">Observation not found</p>
+          <p className="text-muted-foreground">{t("empty.notFound.observation")}</p>
         </div>
       </AppShell>
     )
@@ -51,9 +52,13 @@ export default function ObservationDetailPage({ params }: { params: Promise<{ id
 
   return (
     <AppShell>
-      <FormHeader title={observation.title || observation.number} backHref="/observations" onExportPdf={() => {}} />
+      <FormHeader
+        title={observation.title || observation.number}
+        backHref="/observations"
+        onExportPdf={() => exportElementAsPdf({ elementId: "form-detail", filename: `${(observation.title || observation.number)}-${locale}.pdf` })}
+      />
 
-      <div className="p-4 md:p-6 lg:p-8 max-w-4xl mx-auto space-y-6">
+      <div id="form-detail" className="p-4 md:p-6 lg:p-8 max-w-4xl mx-auto space-y-6">
         {/* Header info */}
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-info/10">
@@ -70,13 +75,13 @@ export default function ObservationDetailPage({ params }: { params: Promise<{ id
               </Badge>
             </div>
             <p className="text-sm text-muted-foreground mt-1">
-              Updated {formatDistanceToNow(new Date(observation.updatedAt), { addSuffix: true })}
+              {t("common.updated", { distance: distanceToNowLocalized(new Date(observation.updatedAt), locale) })}
             </p>
           </div>
         </div>
 
         {/* Details */}
-        <FormSection title="Details" collapsible={false}>
+        <FormSection title={t("section.details")} collapsible={false}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
               <Building className="h-5 w-5 text-muted-foreground" />
@@ -115,7 +120,7 @@ export default function ObservationDetailPage({ params }: { params: Promise<{ id
                 <Calendar className="h-5 w-5 text-muted-foreground" />
                 <div>
                   <p className="text-xs text-muted-foreground">{t("observation.dueDate")}</p>
-                  <p className="font-medium">{format(new Date(observation.dueDate), "MMM d, yyyy")}</p>
+                  <p className="font-medium">{formatLocalized(new Date(observation.dueDate), "MMM d, yyyy", locale)}</p>
                 </div>
               </div>
             )}
@@ -193,5 +198,5 @@ export default function ObservationDetailPage({ params }: { params: Promise<{ id
         )}
       </div>
     </AppShell>
-  )
+    )
 }

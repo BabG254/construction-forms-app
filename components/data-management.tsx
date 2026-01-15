@@ -1,20 +1,25 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Download, Upload, Trash2, AlertTriangle, Globe } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useAppStore } from "@/lib/store"
 import { getTranslation, type Language } from "@/lib/i18n"
+import { useLocale } from "@/lib/locale-context"
 
 export function DataManagement() {
   const [isExporting, setIsExporting] = useState(false)
   const [isImporting, setIsImporting] = useState(false)
-  const [language, setLanguage] = useState<Language>("fr")
+  const { locale, setLocale } = useLocale()
+  const [language, setLanguage] = useState<Language>(locale)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { incidents, observations, inspections, addIncident, addObservation, addInspection } = useAppStore()
   const t = getTranslation(language).dataManagement
+  useEffect(() => {
+    setLanguage(locale)
+  }, [locale])
 
   const handleExport = async () => {
     setIsExporting(true)
@@ -154,9 +159,8 @@ export function DataManagement() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setLanguage(language === "fr" ? "en" : "fr")}
+            onClick={() => setLocale(language === "fr" ? "en" : "fr")}
             className="gap-2"
-            title={language === "fr" ? "Switch to English" : "Passer au Français"}
           >
             <Globe className="h-4 w-4" />
             {getTranslation(language).dataManagement.buttons.changeLanguage}

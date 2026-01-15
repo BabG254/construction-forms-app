@@ -46,18 +46,18 @@ export function SyncStatusBanner() {
       </div>
 
       <div className="flex-1 min-w-0">
-        <p className="font-medium text-sm">{isOnline ? `${pendingChanges} changes pending` : t("status.offline")}</p>
+        <p className="font-medium text-sm">
+          {isOnline ? t("status.pendingChanges", { count: pendingChanges }) : t("status.offline")}
+        </p>
         <p className="text-xs text-muted-foreground">
-          {isOnline
-            ? "Tap to sync your changes now"
-            : "Your changes are saved locally and will sync when you reconnect"}
+          {isOnline ? t("status.syncNow") : t("status.localSaveInfo")}
         </p>
       </div>
 
       <div className="flex items-center gap-2 shrink-0">
         {isOnline && (
           <Button size="sm" onClick={syncNow} disabled={isSyncing}>
-            Sync
+            {t("action.sync")}
           </Button>
         )}
         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setDismissed(true)}>

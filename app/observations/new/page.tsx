@@ -11,10 +11,12 @@ import { useAppStore } from "@/lib/store"
 import { getObservationTypes } from "@/lib/reference-data-loader"
 import { AlertTriangle, CheckCircle2 } from "lucide-react"
 import type { Observation, Attachment } from "@/lib/types"
+import { useLocale } from "@/lib/locale-context"
 
 export default function NewObservation() {
   const router = useRouter()
   const { addObservation, projects, currentUser } = useAppStore()
+  const { t } = useLocale()
   const [files, setFiles] = useState<File[]>([])
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -38,15 +40,15 @@ export default function NewObservation() {
   const validateForm = useCallback(() => {
     const newErrors: Record<string, string> = {}
 
-    if (!formData.title.trim()) newErrors.title = "Title is required"
-    if (!formData.type) newErrors.type = "Observation type is required"
-    if (!formData.projectId) newErrors.projectId = "Project is required"
-    if (!formData.description.trim()) newErrors.description = "Description is required"
-    if (!formData.safetyAnalysis.danger.trim()) newErrors.danger = "Danger/Hazard is required"
-    if (!formData.safetyAnalysis.contributingCondition.trim()) 
-      newErrors.condition = "Contributing condition is required"
-    if (!formData.safetyAnalysis.contributingBehavior.trim()) 
-      newErrors.behavior = "Contributing behavior is required"
+    if (!formData.title.trim()) newErrors.title = t("error.titleRequired")
+    if (!formData.type) newErrors.type = t("observation.type")
+    if (!formData.projectId) newErrors.projectId = t("error.projectRequired")
+    if (!formData.description.trim()) newErrors.description = t("form.description")
+    if (!formData.safetyAnalysis.danger.trim()) newErrors.danger = t("observation.danger")
+    if (!formData.safetyAnalysis.contributingCondition.trim())
+      newErrors.condition = t("observation.contributingCondition")
+    if (!formData.safetyAnalysis.contributingBehavior.trim())
+      newErrors.behavior = t("observation.contributingBehavior")
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -57,7 +59,7 @@ export default function NewObservation() {
       e.preventDefault()
       
       if (!validateForm()) {
-        alert("Please fill in all required fields")
+        alert(t("alert.requiredFields"))
         return
       }
 
@@ -97,11 +99,11 @@ export default function NewObservation() {
         addObservation(observation)
         
         // Show success message
-        alert("Observation saved successfully!")
+        alert(t("alert.saveSuccess.observation"))
         router.push("/observations")
       } catch (error) {
         console.error("Error saving observation:", error)
-        alert("Error saving observation. Please try again.")
+        alert(t("alert.saveError.observation"))
       } finally {
         setIsSubmitting(false)
       }
@@ -115,8 +117,8 @@ export default function NewObservation() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <FormHeader
-        title="New Observation"
-        description="Record a site observation or concern"
+        title={t("dashboard.newObservation")}
+        description={t("observation.title")}
       />
 
       {/* Priority indicators */}
@@ -136,7 +138,7 @@ export default function NewObservation() {
                 {level === "low" && <CheckCircle2 className="h-4 w-4 text-green-600" />}
                 {level === "medium" && <AlertTriangle className="h-4 w-4 text-yellow-600" />}
                 {level === "high" && <AlertTriangle className="h-4 w-4 text-red-600" />}
-                <span className="capitalize font-medium">{level}</span>
+                <span className="capitalize font-medium">{t(`priority.${level}` as any)}</span>
               </div>
             </CardContent>
           </Card>
@@ -145,11 +147,11 @@ export default function NewObservation() {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Basic Information */}
-        <FormSection title="Observation Details" defaultOpen>
+        <FormSection title={t("observation.title")} defaultOpen>
           <FormField
-            label="Title"
+            label={t("form.title")}
             name="title"
-            placeholder="Brief observation summary"
+            placeholder={t("form.description")}
             value={formData.title}
             onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
             error={errors.title}
@@ -158,7 +160,7 @@ export default function NewObservation() {
 
           <div className="grid grid-cols-2 gap-4">
             <FormField
-              label="Type"
+              label={t("field.type")}
               name="type"
               as="select"
               value={formData.type}
@@ -166,7 +168,7 @@ export default function NewObservation() {
               error={errors.type}
               required
             >
-              <option value="">Select type...</option>
+              <option value="">{t("inspection.selectType")}</option>
               {observationTypes.map((type) => (
                 <option key={type.id} value={type.id}>
                   {type.label}
@@ -175,7 +177,7 @@ export default function NewObservation() {
             </FormField>
 
             <FormField
-              label="Project"
+              label={t("form.project")}
               name="projectId"
               as="select"
               value={formData.projectId}
@@ -183,7 +185,7 @@ export default function NewObservation() {
               error={errors.projectId}
               required
             >
-              <option value="">Select project...</option>
+              <option value="">{t("inspection.projectSelect")}</option>
               {projects.map((project) => (
                 <option key={project.id} value={project.id}>
                   {project.name}
@@ -193,34 +195,34 @@ export default function NewObservation() {
           </div>
 
           <FormField
-            label="Location on Site"
+            label={t("field.location")}
             name="location"
-            placeholder="Area or zone where observation was made"
+            placeholder={t("form.description")}
             value={formData.location}
             onChange={(e) => setFormData((prev) => ({ ...prev, location: e.target.value }))}
           />
 
           <FormField
-            label="Concerned Company/Contractor"
+            label={t("observation.concernedCompanyLabel")}
             name="concernedCompany"
-            placeholder="Company responsible for the area"
+            placeholder={t("observation.concernedCompanyPlaceholder")}
             value={formData.concernedCompany}
             onChange={(e) => setFormData((prev) => ({ ...prev, concernedCompany: e.target.value }))}
           />
 
           <FormField
-            label="Reference Article/Standard"
+            label={t("observation.referenceArticleLabel")}
             name="referenceArticle"
-            placeholder="Relevant regulation or safety standard"
+            placeholder={t("observation.referenceArticlePlaceholder")}
             value={formData.referenceArticle}
             onChange={(e) => setFormData((prev) => ({ ...prev, referenceArticle: e.target.value }))}
           />
 
           <FormField
-            label="Description"
+            label={t("form.description")}
             name="description"
             as="textarea"
-            placeholder="Detailed description of the observation"
+            placeholder={t("observation.descriptionPlaceholder")}
             value={formData.description}
             onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
             error={errors.description}
@@ -230,19 +232,19 @@ export default function NewObservation() {
         </FormSection>
 
         {/* Safety Analysis */}
-        <FormSection title="Safety Analysis" defaultOpen>
+          <FormSection title={t("observation.safetyAnalysis")} defaultOpen>
           <Alert className="mb-4 bg-blue-50 border-blue-200 dark:bg-blue-950">
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
-              Analyze the hazard, conditions, and behaviors that created this observation.
+              {t("observation.safetyAnalysis")}
             </AlertDescription>
           </Alert>
 
           <FormField
-            label="Danger/Hazard Identified"
+            label={t("observation.danger")}
             name="danger"
             as="textarea"
-            placeholder="What is the potential danger?"
+            placeholder={t("form.description")}
             value={formData.safetyAnalysis.danger}
             onChange={(e) =>
               setFormData((prev) => ({
@@ -256,10 +258,10 @@ export default function NewObservation() {
           />
 
           <FormField
-            label="Contributing Condition"
+            label={t("observation.contributingCondition")}
             name="condition"
             as="textarea"
-            placeholder="Environmental or physical conditions that contributed"
+            placeholder={t("form.description")}
             value={formData.safetyAnalysis.contributingCondition}
             onChange={(e) =>
               setFormData((prev) => ({
@@ -276,10 +278,10 @@ export default function NewObservation() {
           />
 
           <FormField
-            label="Contributing Behavior"
+            label={t("observation.contributingBehavior")}
             name="behavior"
             as="textarea"
-            placeholder="Worker actions or behavioral factors"
+            placeholder={t("form.description")}
             value={formData.safetyAnalysis.contributingBehavior}
             onChange={(e) =>
               setFormData((prev) => ({
@@ -297,14 +299,14 @@ export default function NewObservation() {
         </FormSection>
 
         {/* Attachments */}
-        <FormSection title="Attachments">
+        <FormSection title={t("form.attachments")}>
           <AttachmentUpload 
             onFilesSelected={setFiles}
             files={files}
           />
           {files.length > 0 && (
             <div className="mt-4 space-y-2">
-              <h4 className="font-medium text-sm">Selected Files:</h4>
+              <h4 className="font-medium text-sm">{t("form.attachments")}</h4>
               {files.map((file, idx) => (
                 <div key={idx} className="flex items-center justify-between p-2 bg-muted rounded">
                   <span className="text-sm">{file.name}</span>
@@ -313,7 +315,7 @@ export default function NewObservation() {
                     onClick={() => setFiles((prev) => prev.filter((_, i) => i !== idx))}
                     className="text-xs text-red-600 hover:underline"
                   >
-                    Remove
+                    {t("form.delete")}
                   </button>
                 </div>
               ))}
@@ -328,14 +330,14 @@ export default function NewObservation() {
             className="flex-1"
             disabled={isSubmitting}
           >
-            {isSubmitting ? "Saving..." : "Save Observation"}
+            {isSubmitting ? t("action.saving") : t("form.save")}
           </Button>
           <Button
             type="button"
             variant="outline"
             onClick={() => router.back()}
           >
-            Cancel
+            {t("form.cancel")}
           </Button>
         </div>
       </form>

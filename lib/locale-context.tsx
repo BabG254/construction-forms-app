@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useState, useCallback, type ReactNode } from "react"
+import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from "react"
 
 // Translation keys for the entire application
 const translations = {
@@ -55,6 +55,38 @@ const translations = {
     "form.status": "Status",
     "form.priority": "Priority",
     "form.exportPdf": "Export PDF",
+    "section.details": "Details",
+
+    // Generic
+    "common.updated": "Updated {distance}",
+    "units.days": "{count} days",
+
+    // Not found
+    "empty.notFound.observation": "Observation not found",
+    "empty.notFound.inspection": "Inspection not found",
+    "empty.notFound.incident": "Incident not found",
+
+    // Settings
+    "settings.syncStatus": "Sync Status",
+    "settings.syncStatus.desc": "Monitor your data synchronization status",
+    "settings.totalForms": "Total Forms",
+    "settings.pendingSync": "Pending Sync",
+    "settings.language": "Language",
+    "settings.language.desc": "Choose your preferred language for the application",
+    "settings.applicationLanguage": "Application Language",
+    "settings.notifications": "Notifications",
+    "settings.notifications.desc": "Configure how you receive updates",
+    "settings.pushNotifications": "Push Notifications",
+    "settings.pushNotifications.desc": "Receive alerts for new assignments",
+    "settings.syncAlerts": "Sync Alerts",
+    "settings.syncAlerts.desc": "Get notified when sync completes",
+    "settings.appearance": "Appearance",
+    "settings.appearance.desc": "Customize the visual appearance",
+    "settings.theme": "Theme",
+    "settings.theme.desc": "Choose light or dark mode",
+    "settings.theme.light": "Light",
+    "settings.theme.dark": "Dark",
+    "settings.theme.system": "System",
 
     // Priority levels
     "priority.low": "Low",
@@ -78,6 +110,7 @@ const translations = {
 
     // Incident form
     "incident.title": "Incident Form",
+    "incident.eventDetails": "Event Details",
     "incident.number": "Incident Number",
     "incident.location": "Location",
     "incident.eventDate": "Event Date",
@@ -96,6 +129,7 @@ const translations = {
 
     // Inspection form
     "inspection.title": "Inspection Form",
+    "inspection.createdLabel": "Created",
     "inspection.documentTitle": "Document Title",
     "inspection.type": "Type",
     "inspection.closedBy": "Closed By",
@@ -128,6 +162,8 @@ const translations = {
     "action.close": "Close",
     "action.edit": "Edit",
     "action.view": "View",
+    "action.sync": "Sync",
+    "action.saving": "Saving...",
     "action.search": "Search",
     "action.filter": "Filter",
     "action.new": "New",
@@ -138,12 +174,72 @@ const translations = {
 
     // Empty states
     "empty.noObservations": "No observations yet",
+    "empty.noInspections": "No inspections yet",
     "empty.createFirst": "Create the first observation to get started",
+    "empty.adjustFilters": "Try adjusting your search or filters",
+    "empty.noMatchingInspections": "No matching inspections",
+
+    // List views
+    "list.countOf": "{filtered} of {total} {type}",
+    "list.observation": "observation",
+    "list.observations": "observations",
+    "list.inspection": "inspection",
+    "list.inspections": "inspections",
+
+    // Confirm dialogs
+    "confirm.deleteObservation": "Delete this observation?",
+    "confirm.deleteInspection": "Delete this inspection?",
+
+    // Observation form labels
+    "observation.concernedCompanyLabel": "Concerned Company/Contractor",
+    "observation.concernedCompanyPlaceholder": "Company responsible for the area",
+    "observation.referenceArticleLabel": "Reference Article/Standard",
+    "observation.referenceArticlePlaceholder": "Relevant regulation or safety standard",
+    "observation.descriptionPlaceholder": "Detailed description of the observation",
 
     // Time
     "time.today": "Today",
     "time.yesterday": "Yesterday",
     "time.daysAgo": "{days} days ago",
+
+    // Sync banner
+    "status.pendingChanges": "{count} changes pending",
+    "status.syncNow": "Tap to sync your changes now",
+    "status.localSaveInfo": "Your changes are saved locally and will sync when you reconnect",
+
+    // Inspection (new form)
+    "inspection.progress": "Inspection Progress",
+    "inspection.unanswered": "Unanswered",
+    "inspection.info": "Inspection Information",
+    "inspection.titleLabel": "Inspection Title",
+    "inspection.titlePlaceholder": "e.g., Weekly Safety Inspection - Building A",
+    "inspection.typeLabel": "Inspection Type",
+    "inspection.selectType": "Select type...",
+    "inspection.type.safety": "Safety Inspection",
+    "inspection.type.compliance": "Compliance Check",
+    "inspection.type.incidentFollowUp": "Incident Follow-up",
+    "inspection.type.routine": "Routine Check",
+    "inspection.projectSelect": "Select project...",
+    "inspection.descriptionNotes": "Description/Notes",
+    "inspection.itemsChecked": "{checked}/{total} items checked",
+    "inspection.commentPlaceholder": "Add corrective action or notes...",
+
+    // Errors & alerts
+    "error.titleRequired": "Title is required",
+    "error.inspectionTypeRequired": "Inspection type is required",
+    "error.projectRequired": "Project is required",
+    "error.minimumCompletion": "At least 50% of items must be checked",
+    // Generic alerts
+    "alert.completeBeforeSubmit": "Please complete the form before submitting",
+    "alert.saveSuccess.inspection": "Inspection saved successfully!",
+    "alert.saveError.inspection": "Error saving inspection. Please try again.",
+    "alert.saveSuccess.observation": "Observation saved successfully!",
+    "alert.saveError.observation": "Error saving observation. Please try again.",
+    "alert.requiredFields": "Please fill in all required fields",
+
+    // Buttons
+    "action.saveInspection": "Save Inspection ({percent}% Complete)",
+    "inspection.issuesCount": "{count} issues",
   },
   fr: {
     // Navigation
@@ -196,6 +292,38 @@ const translations = {
     "form.status": "Statut",
     "form.priority": "Priorité",
     "form.exportPdf": "Exporter PDF",
+    "section.details": "Détails",
+
+    // Generic
+    "common.updated": "Mis à jour {distance}",
+    "units.days": "{count} jours",
+
+    // Not found
+    "empty.notFound.observation": "Observation introuvable",
+    "empty.notFound.inspection": "Inspection introuvable",
+    "empty.notFound.incident": "Incident introuvable",
+
+    // Settings
+    "settings.syncStatus": "Statut de synchronisation",
+    "settings.syncStatus.desc": "Surveillez l'état de synchronisation des données",
+    "settings.totalForms": "Formulaires au total",
+    "settings.pendingSync": "Synchronisation en attente",
+    "settings.language": "Langue",
+    "settings.language.desc": "Choisissez votre langue préférée pour l'application",
+    "settings.applicationLanguage": "Langue de l'application",
+    "settings.notifications": "Notifications",
+    "settings.notifications.desc": "Configurer la réception des mises à jour",
+    "settings.pushNotifications": "Notifications push",
+    "settings.pushNotifications.desc": "Recevoir des alertes pour les nouvelles tâches",
+    "settings.syncAlerts": "Alertes de synchronisation",
+    "settings.syncAlerts.desc": "Être notifié lorsque la synchronisation est terminée",
+    "settings.appearance": "Apparence",
+    "settings.appearance.desc": "Personnaliser l'apparence visuelle",
+    "settings.theme": "Thème",
+    "settings.theme.desc": "Choisir le mode clair ou sombre",
+    "settings.theme.light": "Clair",
+    "settings.theme.dark": "Sombre",
+    "settings.theme.system": "Système",
 
     // Priority levels
     "priority.low": "Faible",
@@ -219,6 +347,7 @@ const translations = {
 
     // Incident form
     "incident.title": "Formulaire d'incident",
+    "incident.eventDetails": "Détails de l'événement",
     "incident.number": "Numéro d'incident",
     "incident.location": "Emplacement",
     "incident.eventDate": "Date de l'événement",
@@ -237,6 +366,7 @@ const translations = {
 
     // Inspection form
     "inspection.title": "Formulaire d'inspection",
+    "inspection.createdLabel": "Créé le",
     "inspection.documentTitle": "Titre du document",
     "inspection.type": "Type",
     "inspection.closedBy": "Fermé par",
@@ -269,6 +399,8 @@ const translations = {
     "action.close": "Fermer",
     "action.edit": "Modifier",
     "action.view": "Voir",
+    "action.sync": "Synchroniser",
+    "action.saving": "Enregistrement...",
     "action.search": "Rechercher",
     "action.filter": "Filtrer",
     "action.new": "Nouveau",
@@ -279,12 +411,72 @@ const translations = {
 
     // Empty states
     "empty.noObservations": "Aucune observation",
+    "empty.noInspections": "Aucune inspection",
     "empty.createFirst": "Créez la première observation pour commencer",
+    "empty.adjustFilters": "Essayez d'ajuster votre recherche ou vos filtres",
+    "empty.noMatchingInspections": "Aucune inspection correspondante",
+
+    // List views
+    "list.countOf": "{filtered} sur {total} {type}",
+    "list.observation": "observation",
+    "list.observations": "observations",
+    "list.inspection": "inspection",
+    "list.inspections": "inspections",
+
+    // Confirm dialogs
+    "confirm.deleteObservation": "Supprimer cette observation ?",
+    "confirm.deleteInspection": "Supprimer cette inspection ?",
+
+    // Observation form labels
+    "observation.concernedCompanyLabel": "Entreprise/Entrepreneur concerné",
+    "observation.concernedCompanyPlaceholder": "Entreprise responsable de la zone",
+    "observation.referenceArticleLabel": "Article de référence/Norme",
+    "observation.referenceArticlePlaceholder": "Règlement ou norme de sécurité pertinent",
+    "observation.descriptionPlaceholder": "Description détaillée de l'observation",
 
     // Time
     "time.today": "Aujourd'hui",
     "time.yesterday": "Hier",
     "time.daysAgo": "Il y a {days} jours",
+
+    // Sync banner
+    "status.pendingChanges": "{count} modifications en attente",
+    "status.syncNow": "Appuyez pour synchroniser vos changements maintenant",
+    "status.localSaveInfo": "Vos changements sont enregistrés localement et seront synchronisés lors de la reconnexion",
+
+    // Inspection (new form)
+    "inspection.progress": "Progression de l'inspection",
+    "inspection.unanswered": "Non répondu",
+    "inspection.info": "Informations d'inspection",
+    "inspection.titleLabel": "Titre de l'inspection",
+    "inspection.titlePlaceholder": "p. ex., Inspection hebdomadaire - Bâtiment A",
+    "inspection.typeLabel": "Type d'inspection",
+    "inspection.selectType": "Sélectionner un type...",
+    "inspection.type.safety": "Inspection de sécurité",
+    "inspection.type.compliance": "Vérification de conformité",
+    "inspection.type.incidentFollowUp": "Suivi d'incident",
+    "inspection.type.routine": "Contrôle routinier",
+    "inspection.projectSelect": "Sélectionner un projet...",
+    "inspection.descriptionNotes": "Description/Notes",
+    "inspection.itemsChecked": "{checked}/{total} éléments cochés",
+    "inspection.commentPlaceholder": "Ajouter une action corrective ou des notes...",
+
+    // Errors & alerts
+    "error.titleRequired": "Le titre est obligatoire",
+    "error.inspectionTypeRequired": "Le type d'inspection est obligatoire",
+    "error.projectRequired": "Le projet est obligatoire",
+    "error.minimumCompletion": "Au moins 50% des éléments doivent être cochés",
+    // Generic alerts
+    "alert.completeBeforeSubmit": "Veuillez compléter le formulaire avant de soumettre",
+    "alert.saveSuccess.inspection": "Inspection enregistrée avec succès !",
+    "alert.saveError.inspection": "Erreur lors de l'enregistrement de l'inspection. Veuillez réessayer.",
+    "alert.saveSuccess.observation": "Observation enregistrée avec succès !",
+    "alert.saveError.observation": "Erreur lors de l'enregistrement de l'observation. Veuillez réessayer.",
+    "alert.requiredFields": "Veuillez remplir tous les champs obligatoires",
+
+    // Buttons
+    "action.saveInspection": "Enregistrer l'inspection ({percent}% complété)",
+    "inspection.issuesCount": "{count} problèmes",
   },
 } as const
 
@@ -300,7 +492,13 @@ interface LocaleContextType {
 const LocaleContext = createContext<LocaleContextType | undefined>(undefined)
 
 export function LocaleProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocale] = useState<Locale>("fr")
+  const [locale, setLocale] = useState<Locale>(() => {
+    if (typeof window !== "undefined") {
+      const stored = window.localStorage.getItem("locale")
+      if (stored === "en" || stored === "fr") return stored
+    }
+    return "fr"
+  })
 
   const t = useCallback(
     (key: TranslationKey, params?: Record<string, string | number>) => {
@@ -316,6 +514,18 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
     },
     [locale],
   )
+
+  // Persist locale and set document language
+  useEffect(() => {
+    try {
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem("locale", locale)
+        document.documentElement.lang = locale
+      }
+    } catch (e) {
+      // ignore storage errors
+    }
+  }, [locale])
 
   return <LocaleContext.Provider value={{ locale, setLocale, t }}>{children}</LocaleContext.Provider>
 }

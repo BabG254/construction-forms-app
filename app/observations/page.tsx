@@ -49,7 +49,11 @@ export default function ObservationsPage() {
           <div>
             <h1 className="text-3xl font-bold">{t("nav.observations")}</h1>
             <p className="text-muted-foreground">
-              {filtered.length} of {observations.length} observation{observations.length !== 1 ? "s" : ""}
+              {t("list.countOf", { 
+                filtered: filtered.length, 
+                total: observations.length,
+                type: observations.length !== 1 ? t("list.observations") : t("list.observation")
+              })}
             </p>
           </div>
           <Link href="/observations/new">
@@ -97,7 +101,7 @@ export default function ObservationsPage() {
               <p className="text-muted-foreground mb-4">
                 {observations.length === 0
                   ? t("empty.createFirst")
-                  : "Try adjusting your search or filters"}
+                  : t("empty.adjustFilters")}
               </p>
               {observations.length === 0 && (
                 <Link href="/observations/new">
@@ -171,7 +175,7 @@ export default function ObservationsPage() {
                         variant="destructive"
                         size="sm"
                         onClick={() => {
-                          if (confirm("Delete this observation?")) {
+                          if (confirm(t("confirm.deleteObservation"))) {
                             deleteObservation(observation.id)
                           }
                         }}

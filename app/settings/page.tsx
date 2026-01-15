@@ -32,20 +32,20 @@ export default function SettingsPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Database className="h-5 w-5" />
-                Sync Status
+                {t("settings.syncStatus")}
               </CardTitle>
-              <CardDescription>Monitor your data synchronization status</CardDescription>
+              <CardDescription>{t("settings.syncStatus.desc")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <OfflineIndicator variant="full" />
               <div className="grid grid-cols-2 gap-4 pt-2">
                 <div className="p-3 bg-muted/50 rounded-lg">
                   <p className="text-2xl font-bold">{totalForms}</p>
-                  <p className="text-sm text-muted-foreground">Total Forms</p>
+                  <p className="text-sm text-muted-foreground">{t("settings.totalForms")}</p>
                 </div>
                 <div className="p-3 bg-muted/50 rounded-lg">
                   <p className="text-2xl font-bold">{pendingSync}</p>
-                  <p className="text-sm text-muted-foreground">Pending Sync</p>
+                  <p className="text-sm text-muted-foreground">{t("settings.pendingSync")}</p>
                 </div>
               </div>
             </CardContent>
@@ -56,13 +56,13 @@ export default function SettingsPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Globe className="h-5 w-5" />
-                Language
+                {t("settings.language")}
               </CardTitle>
-              <CardDescription>Choose your preferred language for the application</CardDescription>
+              <CardDescription>{t("settings.language.desc")}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
-                <Label htmlFor="language">Application Language</Label>
+                <Label htmlFor="language">{t("settings.applicationLanguage")}</Label>
                 <Select value={locale} onValueChange={(value) => setLocale(value as "en" | "fr")}>
                   <SelectTrigger className="w-40">
                     <SelectValue />
@@ -81,22 +81,22 @@ export default function SettingsPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Bell className="h-5 w-5" />
-                Notifications
+                {t("settings.notifications")}
               </CardTitle>
-              <CardDescription>Configure how you receive updates</CardDescription>
+              <CardDescription>{t("settings.notifications.desc")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <Label htmlFor="push">Push Notifications</Label>
-                  <p className="text-sm text-muted-foreground">Receive alerts for new assignments</p>
+                  <Label htmlFor="push">{t("settings.pushNotifications")}</Label>
+                  <p className="text-sm text-muted-foreground">{t("settings.pushNotifications.desc")}</p>
                 </div>
                 <Switch id="push" defaultChecked />
               </div>
               <div className="flex items-center justify-between">
                 <div>
-                  <Label htmlFor="sync-alert">Sync Alerts</Label>
-                  <p className="text-sm text-muted-foreground">Get notified when sync completes</p>
+                  <Label htmlFor="sync-alert">{t("settings.syncAlerts")}</Label>
+                  <p className="text-sm text-muted-foreground">{t("settings.syncAlerts.desc")}</p>
                 </div>
                 <Switch id="sync-alert" defaultChecked />
               </div>
@@ -108,24 +108,24 @@ export default function SettingsPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Sun className="h-5 w-5" />
-                Appearance
+                {t("settings.appearance")}
               </CardTitle>
-              <CardDescription>Customize the visual appearance</CardDescription>
+              <CardDescription>{t("settings.appearance.desc")}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
                 <div>
-                  <Label htmlFor="theme">Theme</Label>
-                  <p className="text-sm text-muted-foreground">Choose light or dark mode</p>
+                  <Label htmlFor="theme">{t("settings.theme")}</Label>
+                  <p className="text-sm text-muted-foreground">{t("settings.theme.desc")}</p>
                 </div>
                 <Select defaultValue="light">
                   <SelectTrigger className="w-32">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="light">Light</SelectItem>
-                    <SelectItem value="dark">Dark</SelectItem>
-                    <SelectItem value="system">System</SelectItem>
+                    <SelectItem value="light">{t("settings.theme.light")}</SelectItem>
+                    <SelectItem value="dark">{t("settings.theme.dark")}</SelectItem>
+                    <SelectItem value="system">{t("settings.theme.system")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

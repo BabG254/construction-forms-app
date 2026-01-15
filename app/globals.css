@@ -143,3 +143,15 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Print styles for cleaner PDF/print output */
+@media print {
+  /* Hide interactive UI and fixed banners */
+  button, .fixed, .sticky, .no-print { display: none !important; }
+  /* Use white background for paper */
+  body { background: #ffffff !important; }
+  /* Avoid link URLs after text */
+  a[href]:after { content: "" !important; }
+  /* Maximize content width */
+  #form-detail { width: 100% !important; }
+}

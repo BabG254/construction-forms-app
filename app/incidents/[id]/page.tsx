@@ -1,7 +1,7 @@
 "use client"
 
 import { use } from "react"
-import { formatDistanceToNow, format } from "date-fns"
+import { format } from "date-fns"
 import {
   AlertTriangle,
   Calendar,
@@ -19,8 +19,9 @@ import { FormHeader } from "@/components/forms/form-header"
 import { FormSection } from "@/components/forms/form-section"
 import { Badge } from "@/components/ui/badge"
 import { useLocale } from "@/lib/locale-context"
+import { exportElementAsPdf } from "@/lib/pdf"
 import { useAppStore } from "@/lib/store"
-import { cn } from "@/lib/utils"
+import { cn, distanceToNowLocalized, formatLocalized } from "@/lib/utils"
 
 const statusVariants = {
   draft: "bg-muted text-muted-foreground",
@@ -32,7 +33,7 @@ const statusVariants = {
 
 export default function IncidentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
-  const { t } = useLocale()
+  const { t, locale } = useLocale()
   const { incidents, projects, users } = useAppStore()
 
   const incident = incidents.find((i) => i.id === id)
@@ -41,7 +42,7 @@ export default function IncidentDetailPage({ params }: { params: Promise<{ id: s
     return (
       <AppShell>
         <div className="flex items-center justify-center min-h-[50vh]">
-          <p className="text-muted-foreground">Incident not found</p>
+          <p className="text-muted-foreground">{t("empty.notFound.incident")}</p>
         </div>
       </AppShell>
     )
@@ -52,9 +53,13 @@ export default function IncidentDetailPage({ params }: { params: Promise<{ id: s
 
   return (
     <AppShell>
-      <FormHeader title={incident.title || incident.number} backHref="/incidents" onExportPdf={() => {}} />
+      <FormHeader
+        title={incident.title || incident.number}
+        backHref="/incidents"
+        onExportPdf={() => exportElementAsPdf({ elementId: "form-detail", filename: `${(incident.title || incident.number)}-${locale}.pdf` })}
+      />
 
-      <div className="p-4 md:p-6 lg:p-8 max-w-4xl mx-auto space-y-6">
+      <div id="form-detail" className="p-4 md:p-6 lg:p-8 max-w-4xl mx-auto space-y-6">
         {/* Header info */}
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-destructive/10">
@@ -68,13 +73,13 @@ export default function IncidentDetailPage({ params }: { params: Promise<{ id: s
               </Badge>
             </div>
             <p className="text-sm text-muted-foreground mt-1">
-              Updated {formatDistanceToNow(new Date(incident.updatedAt), { addSuffix: true })}
+              {t("common.updated", { distance: distanceToNowLocalized(new Date(incident.updatedAt), locale) })}
             </p>
           </div>
         </div>
 
         {/* Event Details */}
-        <FormSection title="Event Details" collapsible={false}>
+        <FormSection title={t("incident.eventDetails")} collapsible={false}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
               <Building className="h-5 w-5 text-muted-foreground" />
@@ -96,7 +101,7 @@ export default function IncidentDetailPage({ params }: { params: Promise<{ id: s
               <Calendar className="h-5 w-5 text-muted-foreground" />
               <div>
                 <p className="text-xs text-muted-foreground">{t("incident.eventDate")}</p>
-                <p className="font-medium">{format(new Date(incident.eventDate), "MMMM d, yyyy")}</p>
+                <p className="font-medium">{formatLocalized(new Date(incident.eventDate), "MMMM d, yyyy", locale)}</p>
               </div>
             </div>
 
@@ -211,7 +216,7 @@ export default function IncidentDetailPage({ params }: { params: Promise<{ id: s
                   <Calendar className="h-5 w-5 text-muted-foreground" />
                   <div>
                     <p className="text-xs text-muted-foreground">{t("incident.daysAbsent")}</p>
-                    <p className="font-medium">{incident.medicalTreatment.daysAbsent} days</p>
+                    <p className="font-medium">{t("units.days", { count: incident.medicalTreatment.daysAbsent })}</p>
                   </div>
                 </div>
               )}
@@ -221,7 +226,7 @@ export default function IncidentDetailPage({ params }: { params: Promise<{ id: s
                   <Calendar className="h-5 w-5 text-muted-foreground" />
                   <div>
                     <p className="text-xs text-muted-foreground">{t("incident.restrictedDays")}</p>
-                    <p className="font-medium">{incident.medicalTreatment.restrictedWorkDays} days</p>
+                    <p className="font-medium">{t("units.days", { count: incident.medicalTreatment.restrictedWorkDays })}</p>
                   </div>
                 </div>
               )}
@@ -233,7 +238,7 @@ export default function IncidentDetailPage({ params }: { params: Promise<{ id: s
                     <div>
                       <p className="text-xs text-muted-foreground">{t("incident.dateOfDeath")}</p>
                       <p className="font-medium text-destructive">
-                        {format(new Date(incident.medicalTreatment.dateOfDeath), "MMMM d, yyyy")}
+                        {formatLocalized(new Date(incident.medicalTreatment.dateOfDeath), "MMMM d, yyyy", locale)}
                       </p>
                     </div>
                   </div>
