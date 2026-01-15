@@ -2,6 +2,8 @@
 
 import { useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
+
+export const dynamic = 'force-dynamic'
 import { FormHeader, FormSection, FormField, AttachmentUpload } from "@/components/forms"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"

@@ -2,6 +2,9 @@
 
 import { Suspense } from "react"
 import { Plus, AlertTriangle, Search, Filter } from "lucide-react"
+
+export const dynamic = 'force-dynamic'
+
 import Link from "next/link"
 import { AppShell } from "@/components/app-shell"
 import { Button } from "@/components/ui/button"

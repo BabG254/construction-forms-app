@@ -28,28 +28,30 @@ export function SyncStatusBanner() {
     <div
       className={cn(
         "fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 z-50",
-        "flex items-center gap-3 p-4 rounded-xl border shadow-lg",
-        isOnline ? "bg-card border-border" : "bg-destructive/5 border-destructive/20",
+        "flex items-center gap-3 p-4 rounded-xl border shadow-lg backdrop-blur-sm",
+        isOnline 
+          ? "bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800" 
+          : "bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800",
       )}
     >
       <div
         className={cn(
           "flex items-center justify-center w-10 h-10 rounded-lg shrink-0",
-          isOnline ? "bg-warning/10" : "bg-destructive/10",
+          isOnline ? "bg-green-100 dark:bg-green-900" : "bg-red-100 dark:bg-red-900",
         )}
       >
         {isSyncing ? (
-          <RefreshCw className="h-5 w-5 text-primary animate-spin" />
+          <RefreshCw className="h-5 w-5 text-green-600 dark:text-green-400 animate-spin" />
         ) : (
-          <CloudOff className={cn("h-5 w-5", isOnline ? "text-warning" : "text-destructive")} />
+          <CloudOff className={cn("h-5 w-5", isOnline ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400")} />
         )}
       </div>
 
       <div className="flex-1 min-w-0">
-        <p className="font-medium text-sm">
+        <p className={cn("font-semibold text-sm", isOnline ? "text-green-900 dark:text-green-100" : "text-red-900 dark:text-red-100")}>
           {isOnline ? t("status.pendingChanges", { count: pendingChanges }) : t("status.offline")}
         </p>
-        <p className="text-xs text-muted-foreground">
+        <p className={cn("text-xs", isOnline ? "text-green-700 dark:text-green-300" : "text-red-700 dark:text-red-300")}>
           {isOnline ? t("status.syncNow") : t("status.localSaveInfo")}
         </p>
       </div>

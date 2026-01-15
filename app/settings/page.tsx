@@ -1,6 +1,8 @@
 "use client"
 
 import { Globe, Sun, Database, Bell } from "lucide-react"
+
+export const dynamic = 'force-dynamic'
 import { AppShell } from "@/components/app-shell"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"

@@ -3,6 +3,8 @@
 import { useState, useCallback, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { FormHeader, FormSection, FormField } from "@/components/forms"
+
+export const dynamic = 'force-dynamic'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"

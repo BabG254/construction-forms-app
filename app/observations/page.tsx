@@ -3,6 +3,8 @@
 import { useState } from "react"
 import Link from "next/link"
 import { useAppStore } from "@/lib/store"
+
+export const dynamic = 'force-dynamic'
 import { useLocale } from "@/lib/locale-context"
 import { Eye, Plus, Edit2, Trash2, Search, Filter } from "lucide-react"
 import { Button } from "@/components/ui/button"

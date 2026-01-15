@@ -4,6 +4,9 @@ import type React from "react"
 
 import { useState, useCallback, useMemo } from "react"
 import { useRouter } from "next/navigation"
+
+export const dynamic = 'force-dynamic'
+
 import { toast } from "sonner"
 import { AppShell } from "@/components/app-shell"
 import { FormHeader } from "@/components/forms/form-header"

@@ -1,6 +1,9 @@
 "use client"
 
 import { ClipboardCheck, Eye, AlertTriangle } from "lucide-react"
+
+export const dynamic = 'force-dynamic'
+
 import { AppShell } from "@/components/app-shell"
 import { QuickActionCard } from "@/components/dashboard/quick-action-card"
 import { FormList } from "@/components/dashboard/form-list"
