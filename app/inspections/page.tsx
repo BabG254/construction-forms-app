@@ -1,53 +1,227 @@
 "use client"
 
-import { Suspense } from "react"
-import { Plus, ClipboardCheck, Search, Filter, Check, X } from "lucide-react"
+import { useState } from "react"
 import Link from "next/link"
-import { AppShell } from "@/components/app-shell"
+import { useAppStore } from "@/lib/store"
+import { ClipboardCheck, Plus, Edit2, Trash2, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { useLocale } from "@/lib/locale-context"
-import { useAppStore, inspectionSections } from "@/lib/store"
-import { formatDistanceToNow } from "date-fns"
-import { cn } from "@/lib/utils"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Progress } from "@/components/ui/progress"
 
-const statusVariants = {
-  draft: "bg-muted text-muted-foreground",
-  submitted: "bg-primary/10 text-primary",
-  open: "bg-warning/10 text-warning-foreground",
-  closed: "bg-accent/10 text-accent",
-  "in-progress": "bg-info/10 text-info",
-}
+export default function InspectionsPage() {
+  const { inspections, deleteInspection } = useAppStore()
+  const [searchTerm, setSearchTerm] = useState("")
+  const [filterStatus, setFilterStatus] = useState<string | null>(null)
 
-function InspectionsContent() {
-  const { t } = useLocale()
-  const { inspections, projects } = useAppStore()
+  const filtered = inspections.filter((insp) => {
+    const matchesSearch =
+      insp.documentTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      insp.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      insp.id.toLowerCase().includes(searchTerm.toLowerCase())
 
-  const totalItems = inspectionSections.reduce((acc, section) => acc + section.items.length, 0)
+    const matchesStatus = !filterStatus || insp.status === filterStatus
+
+    return matchesSearch && matchesStatus
+  })
+
+  // Calculate completion for each inspection
+  const getCompletionPercentage = (inspection: typeof inspections[0]): number => {
+    if (inspection.responses.length === 0) return 0
+    const answered = inspection.responses.filter((r) => r.response !== null).length
+    return Math.round((answered / inspection.responses.length) * 100)
+  }
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "draft":
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+      case "in-progress":
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+      case "closed":
+        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+      default:
+        return "bg-gray-100 text-gray-800"
+    }
+  }
 
   return (
-    <div className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground">{t("nav.inspections")}</h1>
-          <p className="text-muted-foreground mt-1">
-            {inspections.length} {inspections.length === 1 ? "inspection" : "inspections"}
+          <h1 className="text-3xl font-bold">Inspections</h1>
+          <p className="text-muted-foreground">
+            {filtered.length} of {inspections.length} inspection{inspections.length !== 1 ? "s" : ""}
           </p>
         </div>
-        <Button asChild size="lg" className="h-12">
-          <Link href="/inspections/new">
-            <Plus className="h-5 w-5 mr-2" />
-            {t("dashboard.newInspection")}
-          </Link>
-        </Button>
+        <Link href="/inspections/new">
+          <Button className="gap-2">
+            <Plus className="h-4 w-4" />
+            New Inspection
+          </Button>
+        </Link>
       </div>
 
-      {/* Search and filters */}
-      <div className="flex gap-3 mb-6">
-        <div className="relative flex-1">
+      {/* Search and Filters */}
+      <div className="flex flex-col md:flex-row gap-3">
+        <div className="flex-1 relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search inspections..."
+            className="pl-10"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+
+        <div className="flex gap-2">
+          {["draft", "in-progress", "closed"].map((status) => (
+            <Button
+              key={status}
+              variant={filterStatus === status ? "default" : "outline"}
+              size="sm"
+              onClick={() => setFilterStatus(filterStatus === status ? null : status)}
+              className="capitalize"
+            >
+              {status}
+            </Button>
+          ))}
+        </div>
+      </div>
+
+      {/* Empty State */}
+      {filtered.length === 0 && (
+        <Card>
+          <CardContent className="pt-12 pb-12 text-center">
+            <ClipboardCheck className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+            <h3 className="font-semibold text-lg mb-2">
+              {inspections.length === 0 ? "No inspections yet" : "No matching inspections"}
+            </h3>
+            <p className="text-muted-foreground mb-4">
+              {inspections.length === 0
+                ? "Start by creating your first safety inspection"
+                : "Try adjusting your search or filters"}
+            </p>
+            {inspections.length === 0 && (
+              <Link href="/inspections/new">
+                <Button className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Create First Inspection
+                </Button>
+              </Link>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Inspections List */}
+      {filtered.length > 0 && (
+        <div className="space-y-3">
+          {filtered.map((inspection) => {
+            const completionPercentage = getCompletionPercentage(inspection)
+
+            return (
+              <Card
+                key={inspection.id}
+                className="hover:shadow-md transition-shadow overflow-hidden"
+              >
+                <CardContent className="pt-6">
+                  <div className="space-y-4">
+                    {/* Header */}
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="font-semibold text-lg">{inspection.documentTitle}</h3>
+                          <Badge className={getStatusColor(inspection.status)} variant="secondary">
+                            {inspection.status}
+                          </Badge>
+                          {inspection.syncStatus === "pending" && (
+                            <Badge variant="secondary" className="text-xs">
+                              ⏳ Pending
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-sm text-muted-foreground">{inspection.type}</p>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-3xl font-bold text-blue-600">
+                          {completionPercentage}%
+                        </div>
+                        <p className="text-xs text-muted-foreground">Complete</p>
+                      </div>
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div className="space-y-2">
+                      <Progress value={completionPercentage} className="h-2" />
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>{inspection.responses.filter((r) => r.response !== null).length} / {inspection.responses.length} items</span>
+                        <span>Created {new Date(inspection.createdAt).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+
+                    {/* Description */}
+                    {inspection.description && (
+                      <p className="text-sm text-muted-foreground line-clamp-2">
+                        {inspection.description}
+                      </p>
+                    )}
+
+                    {/* Response Summary */}
+                    <div className="grid grid-cols-3 gap-3 p-3 bg-muted rounded-lg text-xs">
+                      <div>
+                        <div className="text-muted-foreground">✓ Conforming</div>
+                        <div className="font-bold text-green-600">
+                          {inspection.responses.filter((r) => r.response === "conforming").length}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-muted-foreground">✗ Non-Conforming</div>
+                        <div className="font-bold text-red-600">
+                          {inspection.responses.filter((r) => r.response === "non-conforming").length}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-muted-foreground">N/A Not Applicable</div>
+                        <div className="font-bold text-gray-600">
+                          {inspection.responses.filter((r) => r.response === "not-applicable").length}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex gap-2 pt-2">
+                      <Link href={`/inspections/${inspection.id}`} className="flex-1">
+                        <Button variant="outline" size="sm" className="w-full gap-2">
+                          <Edit2 className="h-4 w-4" />
+                          View/Edit
+                        </Button>
+                      </Link>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => {
+                          if (confirm("Delete this inspection?")) {
+                            deleteInspection(inspection.id)
+                          }
+                        }}
+                        className="gap-2"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input placeholder={t("action.search")} className="pl-10 h-12" />
         </div>

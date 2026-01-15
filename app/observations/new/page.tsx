@@ -1,329 +1,341 @@
 "use client"
 
-import type React from "react"
-
 import { useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import { toast } from "sonner"
-import { AppShell } from "@/components/app-shell"
-import { FormHeader } from "@/components/forms/form-header"
-import { FormSection } from "@/components/forms/form-section"
-import { FormField } from "@/components/forms/form-field"
-import { AttachmentUpload } from "@/components/forms/attachment-upload"
+import { FormHeader, FormSection, FormField, AttachmentUpload } from "@/components/forms"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useLocale } from "@/lib/locale-context"
+import { Card, CardContent } from "@/components/ui/card"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Badge } from "@/components/ui/badge"
 import { useAppStore } from "@/lib/store"
-import type { Observation, Attachment, Priority, FormStatus } from "@/lib/types"
+import { getObservationTypes } from "@/lib/reference-data-loader"
+import { AlertTriangle, CheckCircle2 } from "lucide-react"
+import type { Observation, Attachment } from "@/lib/types"
 
-const observationTypes = [
-  "Unsafe Act",
-  "Unsafe Condition",
-  "Environmental",
-  "Quality",
-  "Positive Observation",
-  "Near Miss",
-]
-
-export default function NewObservationPage() {
+export default function NewObservation() {
   const router = useRouter()
-  const { t } = useLocale()
-  const { projects, users, currentUser, addObservation } = useAppStore()
+  const { addObservation, projects, currentUser } = useAppStore()
+  const [files, setFiles] = useState<File[]>([])
+  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const [isSaving, setIsSaving] = useState(false)
   const [formData, setFormData] = useState({
     title: "",
     type: "",
-    projectId: "",
-    assignedPersonId: "",
-    priority: "medium" as Priority,
-    distribution: [] as string[],
-    dueDate: "",
-    completionDate: "",
-    concernedCompany: "",
+    projectId: projects[0]?.id || "",
+    location: "",
     description: "",
+    priority: "medium" as const,
+    concernedCompany: "",
     referenceArticle: "",
-    attachments: [] as Attachment[],
-    danger: "",
-    contributingCondition: "",
-    contributingBehavior: "",
-  })
+    safetyAnalysis: {
+      danger: "",
+      contributingCondition: "",
+      contributingBehavior: "",
+  const validateForm = useCallback(() => {
+    const newErrors: Record<string, string> = {}
 
-  const generateObservationNumber = () => {
-    const date = new Date()
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, "0")
-    const random = Math.floor(Math.random() * 1000)
-      .toString()
-      .padStart(3, "0")
-    return `OBS-${year}${month}-${random}`
-  }
+    if (!formData.title.trim()) newErrors.title = "Title is required"
+    if (!formData.type) newErrors.type = "Observation type is required"
+    if (!formData.projectId) newErrors.projectId = "Project is required"
+    if (!formData.description.trim()) newErrors.description = "Description is required"
+    if (!formData.safetyAnalysis.danger.trim()) newErrors.danger = "Danger/Hazard is required"
+    if (!formData.safetyAnalysis.contributingCondition.trim()) 
+      newErrors.condition = "Contributing condition is required"
+    if (!formData.safetyAnalysis.contributingBehavior.trim()) 
+      newErrors.behavior = "Contributing behavior is required"
 
-  const handleSaveDraft = useCallback(async () => {
-    setIsSaving(true)
-    try {
-      const observation: Observation = {
-        id: Math.random().toString(36).substring(7),
-        number: generateObservationNumber(),
-        title: formData.title,
-        type: formData.type,
-        projectId: formData.projectId,
-        creatorId: currentUser?.id || "",
-        assignedPersonId: formData.assignedPersonId,
-        priority: formData.priority,
-        status: "draft" as FormStatus,
-        distribution: formData.distribution,
-        dueDate: formData.dueDate ? new Date(formData.dueDate) : null,
-        completionDate: formData.completionDate ? new Date(formData.completionDate) : null,
-        concernedCompany: formData.concernedCompany,
-        description: formData.description,
-        referenceArticle: formData.referenceArticle,
-        attachments: formData.attachments,
-        safetyAnalysis: {
-          danger: formData.danger,
-          contributingCondition: formData.contributingCondition,
-          contributingBehavior: formData.contributingBehavior,
-        },
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        syncStatus: "pending",
-      }
-      addObservation(observation)
-      toast.success(t("status.savedLocally"))
-      router.push("/observations")
-    } finally {
-      setIsSaving(false)
-    }
-  }, [formData, currentUser, addObservation, router, t])
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }, [formData])
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault()
-      setIsSaving(true)
+      
+      if (!validateForm()) {
+        alert("Please fill in all required fields")
+        return
+      }
+
+      setIsSubmitting(true)
+
       try {
         const observation: Observation = {
-          id: Math.random().toString(36).substring(7),
-          number: generateObservationNumber(),
+          id: crypto.randomUUID(),
+          number: `OBS-${Date.now().toString().slice(-6)}`,
           title: formData.title,
           type: formData.type,
           projectId: formData.projectId,
-          creatorId: currentUser?.id || "",
-          assignedPersonId: formData.assignedPersonId,
+          creatorId: currentUser?.id || "unknown",
+          assignedPersonId: currentUser?.id || "unknown",
           priority: formData.priority,
-          status: "submitted" as FormStatus,
-          distribution: formData.distribution,
-          dueDate: formData.dueDate ? new Date(formData.dueDate) : null,
-          completionDate: formData.completionDate ? new Date(formData.completionDate) : null,
+          status: "open",
+          distribution: [],
+          dueDate: null,
+          completionDate: null,
           concernedCompany: formData.concernedCompany,
           description: formData.description,
           referenceArticle: formData.referenceArticle,
-          attachments: formData.attachments,
-          safetyAnalysis: {
-            danger: formData.danger,
-            contributingCondition: formData.contributingCondition,
-            contributingBehavior: formData.contributingBehavior,
-          },
+          attachments: files.map((file) => ({
+            id: crypto.randomUUID(),
+            name: file.name,
+            type: file.type,
+            size: file.size,
+            url: URL.createObjectURL(file),
+            uploadedAt: new Date(),
+          })) as Attachment[],
+          safetyAnalysis: formData.safetyAnalysis,
           createdAt: new Date(),
           updatedAt: new Date(),
           syncStatus: "pending",
         }
+
         addObservation(observation)
-        toast.success("Observation submitted successfully")
+        
+        // Show success message
+        alert("Observation saved successfully!")
         router.push("/observations")
+      } catch (error) {
+        console.error("Error saving observation:", error)
+        alert("Error saving observation. Please try again.")
       } finally {
-        setIsSaving(false)
+        setIsSubmitting(false)
       }
     },
-    [formData, currentUser, addObservation, router],
+    [formData, files, validateForm, addObservation, currentUser, router],
   )
 
+  const selectedType = observationTypes.find((t) => t.id === formData.type)
+  const selectedProject = projects.find((p) => p.id === formData.projectId)
+
   return (
-    <AppShell>
+    <div className="max-w-4xl mx-auto space-y-6">
       <FormHeader
-        title={t("observation.title")}
-        backHref="/observations"
-        onSaveDraft={handleSaveDraft}
-        isSaving={isSaving}
+        title="New Observation"
+        description="Record a site observation or concern"
       />
 
-      <form onSubmit={handleSubmit} className="p-4 md:p-6 lg:p-8 max-w-4xl mx-auto space-y-6">
+      {/* Priority indicators */}
+      <div className="grid grid-cols-3 gap-4">
+        {(["low", "medium", "high"] as const).map((level) => (
+          <Card
+            key={level}
+            className={`cursor-pointer transition-all ${
+              formData.priority === level
+                ? "ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-950"
+                : "hover:border-blue-300"
+            }`}
+            onClick={() => setFormData((prev) => ({ ...prev, priority: level }))}
+          >
+            <CardContent className="pt-4">
+              <div className="flex items-center gap-2">
+                {level === "low" && <CheckCircle2 className="h-4 w-4 text-green-600" />}
+                {level === "medium" && <AlertTriangle className="h-4 w-4 text-yellow-600" />}
+                {level === "high" && <AlertTriangle className="h-4 w-4 text-red-600" />}
+                <span className="capitalize font-medium">{level}</span>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-6">
         {/* Basic Information */}
-        <FormSection title="Basic Information" collapsible={false}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField label={t("form.title")} required className="md:col-span-2">
-              <Input
-                value={formData.title}
-                onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
-                placeholder="Enter observation title"
-                className="h-12"
-              />
+        <FormSection title="Observation Details" defaultOpen>
+          <FormField
+            label="Title"
+            name="title"
+            placeholder="Brief observation summary"
+            value={formData.title}
+            onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
+            error={errors.title}
+            required
+          />
+
+          <div className="grid grid-cols-2 gap-4">
+            <FormField
+              label="Type"
+              name="type"
+              as="select"
+              value={formData.type}
+              onChange={(e) => setFormData((prev) => ({ ...prev, type: e.target.value }))}
+              error={errors.type}
+              required
+            >
+              <option value="">Select type...</option>
+              {observationTypes.map((type) => (
+                <option key={type.id} value={type.id}>
+                  {type.label}
+                </option>
+              ))}
             </FormField>
 
-            <FormField label={t("observation.type")} required>
-              <Select
-                value={formData.type}
-                onValueChange={(value) => setFormData((prev) => ({ ...prev, type: value }))}
-              >
-                <SelectTrigger className="h-12">
-                  <SelectValue placeholder="Select type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {observationTypes.map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {type}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </FormField>
-
-            <FormField label={t("form.project")} required>
-              <Select
-                value={formData.projectId}
-                onValueChange={(value) => setFormData((prev) => ({ ...prev, projectId: value }))}
-              >
-                <SelectTrigger className="h-12">
-                  <SelectValue placeholder="Select project" />
-                </SelectTrigger>
-                <SelectContent>
-                  {projects.map((project) => (
-                    <SelectItem key={project.id} value={project.id}>
-                      {project.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </FormField>
-
-            <FormField label={t("observation.assignedPerson")}>
-              <Select
-                value={formData.assignedPersonId}
-                onValueChange={(value) => setFormData((prev) => ({ ...prev, assignedPersonId: value }))}
-              >
-                <SelectTrigger className="h-12">
-                  <SelectValue placeholder="Select person" />
-                </SelectTrigger>
-                <SelectContent>
-                  {users.map((user) => (
-                    <SelectItem key={user.id} value={user.id}>
-                      {user.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </FormField>
-
-            <FormField label={t("form.priority")} required>
-              <Select
-                value={formData.priority}
-                onValueChange={(value) => setFormData((prev) => ({ ...prev, priority: value as Priority }))}
-              >
-                <SelectTrigger className="h-12">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="low">{t("priority.low")}</SelectItem>
-                  <SelectItem value="medium">{t("priority.medium")}</SelectItem>
-                  <SelectItem value="high">{t("priority.high")}</SelectItem>
-                  <SelectItem value="critical">{t("priority.critical")}</SelectItem>
-                </SelectContent>
-              </Select>
-            </FormField>
-
-            <FormField label={t("observation.concernedCompany")}>
-              <Input
-                value={formData.concernedCompany}
-                onChange={(e) => setFormData((prev) => ({ ...prev, concernedCompany: e.target.value }))}
-                placeholder="Enter company name"
-                className="h-12"
-              />
-            </FormField>
-
-            <FormField label={t("observation.dueDate")}>
-              <Input
-                type="date"
-                value={formData.dueDate}
-                onChange={(e) => setFormData((prev) => ({ ...prev, dueDate: e.target.value }))}
-                className="h-12"
-              />
+            <FormField
+              label="Project"
+              name="projectId"
+              as="select"
+              value={formData.projectId}
+              onChange={(e) => setFormData((prev) => ({ ...prev, projectId: e.target.value }))}
+              error={errors.projectId}
+              required
+            >
+              <option value="">Select project...</option>
+              {projects.map((project) => (
+                <option key={project.id} value={project.id}>
+                  {project.name}
+                </option>
+              ))}
             </FormField>
           </div>
-        </FormSection>
 
-        {/* Description */}
-        <FormSection title={t("form.description")}>
-          <FormField label={t("form.description")} required>
-            <Textarea
-              value={formData.description}
-              onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
-              placeholder="Describe the observation in detail..."
-              rows={6}
-              className="min-h-[120px]"
-            />
-          </FormField>
+          <FormField
+            label="Location on Site"
+            name="location"
+            placeholder="Area or zone where observation was made"
+            value={formData.location}
+            onChange={(e) => setFormData((prev) => ({ ...prev, location: e.target.value }))}
+          />
 
-          <FormField label={t("observation.referenceArticle")} className="mt-4">
-            <Input
-              value={formData.referenceArticle}
-              onChange={(e) => setFormData((prev) => ({ ...prev, referenceArticle: e.target.value }))}
-              placeholder="Enter reference article (CRTC)"
-              className="h-12"
-            />
-          </FormField>
-        </FormSection>
+          <FormField
+            label="Concerned Company/Contractor"
+            name="concernedCompany"
+            placeholder="Company responsible for the area"
+            value={formData.concernedCompany}
+            onChange={(e) => setFormData((prev) => ({ ...prev, concernedCompany: e.target.value }))}
+          />
 
-        {/* Safety Analysis */}
-        <FormSection title={t("observation.safetyAnalysis")}>
-          <div className="space-y-4">
-            <FormField label={t("observation.danger")}>
-              <Textarea
-                value={formData.danger}
-                onChange={(e) => setFormData((prev) => ({ ...prev, danger: e.target.value }))}
-                placeholder="Describe the danger identified..."
-                rows={3}
-              />
-            </FormField>
+          <FormField
+            label="Reference Article/Standard"
+            name="referenceArticle"
+            placeholder="Relevant regulation or safety standard"
+            value={formData.referenceArticle}
+            onChange={(e) => setFormData((prev) => ({ ...prev, referenceArticle: e.target.value }))}
+          />
 
-            <FormField label={t("observation.contributingCondition")}>
-              <Textarea
-                value={formData.contributingCondition}
-                onChange={(e) => setFormData((prev) => ({ ...prev, contributingCondition: e.target.value }))}
-                placeholder="Describe contributing conditions..."
-                rows={3}
-              />
-            </FormField>
-
-            <FormField label={t("observation.contributingBehavior")}>
-              <Textarea
-                value={formData.contributingBehavior}
-                onChange={(e) => setFormData((prev) => ({ ...prev, contributingBehavior: e.target.value }))}
-                placeholder="Describe contributing behaviors..."
-                rows={3}
-              />
-            </FormField>
-          </div>
-        </FormSection>
-
-        {/* Attachments */}
-        <FormSection title={t("form.attachments")}>
-          <AttachmentUpload
-            attachments={formData.attachments}
-            onChange={(attachments) => setFormData((prev) => ({ ...prev, attachments }))}
+          <FormField
+            label="Description"
+            name="description"
+            as="textarea"
+            placeholder="Detailed description of the observation"
+            value={formData.description}
+            onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
+            error={errors.description}
+            rows={5}
+            required
           />
         </FormSection>
 
-        {/* Submit */}
-        <div className="flex flex-col sm:flex-row gap-3 pt-4">
-          <Button type="button" variant="outline" onClick={() => router.push("/observations")} className="h-12 flex-1">
-            {t("form.cancel")}
+        {/* Safety Analysis */}
+        <FormSection title="Safety Analysis" defaultOpen>
+          <Alert className="mb-4 bg-blue-50 border-blue-200 dark:bg-blue-950">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              Analyze the hazard, conditions, and behaviors that created this observation.
+            </AlertDescription>
+          </Alert>
+
+          <FormField
+            label="Danger/Hazard Identified"
+            name="danger"
+            as="textarea"
+            placeholder="What is the potential danger?"
+            value={formData.safetyAnalysis.danger}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                safetyAnalysis: { ...prev.safetyAnalysis, danger: e.target.value },
+              }))
+            }
+            error={errors.danger}
+            rows={3}
+            required
+          />
+
+          <FormField
+            label="Contributing Condition"
+            name="condition"
+            as="textarea"
+            placeholder="Environmental or physical conditions that contributed"
+            value={formData.safetyAnalysis.contributingCondition}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                safetyAnalysis: {
+                  ...prev.safetyAnalysis,
+                  contributingCondition: e.target.value,
+                },
+              }))
+            }
+            error={errors.condition}
+            rows={3}
+            required
+          />
+
+          <FormField
+            label="Contributing Behavior"
+            name="behavior"
+            as="textarea"
+            placeholder="Worker actions or behavioral factors"
+            value={formData.safetyAnalysis.contributingBehavior}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                safetyAnalysis: {
+                  ...prev.safetyAnalysis,
+                  contributingBehavior: e.target.value,
+                },
+              }))
+            }
+            error={errors.behavior}
+            rows={3}
+            required
+          />
+        </FormSection>
+
+        {/* Attachments */}
+        <FormSection title="Attachments">
+          <AttachmentUpload 
+            onFilesSelected={setFiles}
+            files={files}
+          />
+          {files.length > 0 && (
+            <div className="mt-4 space-y-2">
+              <h4 className="font-medium text-sm">Selected Files:</h4>
+              {files.map((file, idx) => (
+                <div key={idx} className="flex items-center justify-between p-2 bg-muted rounded">
+                  <span className="text-sm">{file.name}</span>
+                  <button
+                    type="button"
+                    onClick={() => setFiles((prev) => prev.filter((_, i) => i !== idx))}
+                    className="text-xs text-red-600 hover:underline"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </FormSection>
+
+        {/* Action Buttons */}
+        <div className="flex gap-3 pt-6">
+          <Button
+            type="submit"
+            className="flex-1"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Saving..." : "Save Observation"}
           </Button>
-          <Button type="submit" disabled={isSaving} className="h-12 flex-1">
-            {t("form.submit")}
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => router.back()}
+          >
+            Cancel
           </Button>
         </div>
       </form>
-    </AppShell>
+    </div>
   )
 }
