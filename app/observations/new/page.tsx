@@ -32,6 +32,9 @@ export default function NewObservation() {
       danger: "",
       contributingCondition: "",
       contributingBehavior: "",
+    },
+  })
+
   const validateForm = useCallback(() => {
     const newErrors: Record<string, string> = {}
 

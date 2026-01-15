@@ -98,7 +98,10 @@ export function DataManagement() {
         }
       }
 
-      alert(t.alerts.importSummary(incidentCount, observationCount, inspectionCount))
+      const alertMessage = typeof t.alerts === 'object' && 'importSummary' in t.alerts && typeof t.alerts.importSummary === 'function'
+        ? t.alerts.importSummary(incidentCount, observationCount, inspectionCount)
+        : `Data imported successfully!\n\nIncidents: ${incidentCount}\nObservations: ${observationCount}\nInspections: ${inspectionCount}`
+      alert(alertMessage)
 
       // Reset file input
       if (fileInputRef.current) {
