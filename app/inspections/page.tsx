@@ -3,15 +3,25 @@
 import { useState } from "react"
 import Link from "next/link"
 import { useAppStore } from "@/lib/store"
-import { ClipboardCheck, Plus, Edit2, Trash2, Search } from "lucide-react"
+import { useLocale } from "@/lib/locale-context"
+import { ClipboardCheck, Plus, Edit2, Trash2, Search, Filter } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
+import { AppShell } from "@/components/app-shell"
+import { cn } from "@/lib/utils"
+
+const statusVariants: Record<string, string> = {
+  draft: "bg-blue-100 text-blue-800 dark:bg-blue-900",
+  "in-progress": "bg-yellow-100 text-yellow-800 dark:bg-yellow-900",
+  closed: "bg-green-100 text-green-800 dark:bg-green-900",
+}
 
 export default function InspectionsPage() {
-  const { inspections, deleteInspection } = useAppStore()
+  const { inspections, deleteInspection, projects } = useAppStore()
+  const { t } = useLocale()
   const [searchTerm, setSearchTerm] = useState("")
   const [filterStatus, setFilterStatus] = useState<string | null>(null)
 
@@ -26,28 +36,168 @@ export default function InspectionsPage() {
     return matchesSearch && matchesStatus
   })
 
-  // Calculate completion for each inspection
-  const getCompletionPercentage = (inspection: typeof inspections[0]): number => {
+  const getCompletionPercentage = (inspection: (typeof inspections)[0]): number => {
     if (inspection.responses.length === 0) return 0
     const answered = inspection.responses.filter((r) => r.response !== null).length
     return Math.round((answered / inspection.responses.length) * 100)
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "draft":
-        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-      case "in-progress":
-        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
-      case "closed":
-        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-      default:
-        return "bg-gray-100 text-gray-800"
-    }
-  }
-
   return (
-    <div className="space-y-6">
+    <AppShell>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold">{t("nav.inspections")}</h1>
+            <p className="text-muted-foreground">
+              {filtered.length} of {inspections.length} inspection{inspections.length !== 1 ? "s" : ""}
+            </p>
+          </div>
+          <Link href="/inspections/new">
+            <Button className="gap-2">
+              <Plus className="h-4 w-4" />
+              {t("action.new")}
+            </Button>
+          </Link>
+        </div>
+
+        {/* Search and filters */}
+        <div className="flex gap-3 mb-6">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder={t("action.search")}
+              className="pl-10 h-12"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <div className="flex gap-2">
+            {["draft", "in-progress", "closed"].map((status) => (
+              <Button
+                key={status}
+                variant={filterStatus === status ? "default" : "outline"}
+                size="sm"
+                onClick={() => setFilterStatus(filterStatus === status ? null : status)}
+                className="capitalize text-xs"
+              >
+                {t(`status.${status}` as any)}
+              </Button>
+            ))}
+          </div>
+        </div>
+
+        {/* Empty State */}
+        {filtered.length === 0 && (
+          <Card>
+            <CardContent className="pt-12 pb-12 text-center">
+              <ClipboardCheck className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+              <h3 className="font-semibold text-lg mb-2">
+                {inspections.length === 0 ? t("empty.noInspections") : "No matching inspections"}
+              </h3>
+              <p className="text-muted-foreground mb-4">
+                {inspections.length === 0 ? t("empty.createFirst") : "Try adjusting your search or filters"}
+              </p>
+              {inspections.length === 0 && (
+                <Link href="/inspections/new">
+                  <Button>
+                    <Plus className="h-4 w-4 mr-2" />
+                    {t("action.new")}
+                  </Button>
+                </Link>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* List */}
+        {filtered.length > 0 && (
+          <div className="space-y-4">
+            {filtered.map((inspection) => {
+              const project = projects.find((p) => p.id === inspection.projectId)
+              const completionPercentage = getCompletionPercentage(inspection)
+              const conforming = inspection.responses.filter((r) => r.response === "conforming").length
+              const nonConforming = inspection.responses.filter((r) => r.response === "non-conforming").length
+              const notApplicable = inspection.responses.filter((r) => r.response === "na").length
+
+              return (
+                <Card key={inspection.id} className="hover:shadow-lg transition-shadow">
+                  <CardContent className="p-6">
+                    <div className="flex items-start gap-4 mb-4">
+                      <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-purple-100 dark:bg-purple-900 shrink-0">
+                        <ClipboardCheck className="h-6 w-6 text-purple-600 dark:text-purple-300" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="font-semibold text-base truncate">{inspection.documentTitle}</h3>
+                          <Badge
+                            variant="secondary"
+                            className={cn("text-xs", statusVariants[inspection.status])}
+                          >
+                            {t(`status.${inspection.status}` as any)}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground">{inspection.id}</p>
+                        {project && <p className="text-xs text-muted-foreground mt-1">{project.name}</p>}
+                      </div>
+                    </div>
+
+                    {/* Completion Progress */}
+                    <div className="mb-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-medium">{t("field.completion")}</span>
+                        <span className="text-xs font-bold">{completionPercentage}%</span>
+                      </div>
+                      <Progress value={completionPercentage} className="h-2" />
+                    </div>
+
+                    {/* Response Summary */}
+                    <div className="grid grid-cols-3 gap-2 mb-4 text-xs">
+                      <div className="text-center">
+                        <div className="font-bold text-green-600">{conforming}</div>
+                        <div className="text-muted-foreground">Conforming</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="font-bold text-red-600">{nonConforming}</div>
+                        <div className="text-muted-foreground">Non-Conf.</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="font-bold text-gray-600">{notApplicable}</div>
+                        <div className="text-muted-foreground">N/A</div>
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex gap-2 pt-3">
+                      <Link href={`/inspections/${inspection.id}`} className="flex-1">
+                        <Button variant="outline" size="sm" className="w-full gap-2">
+                          <Edit2 className="h-4 w-4" />
+                          {t("action.view")}
+                        </Button>
+                      </Link>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => {
+                          if (confirm("Delete this inspection?")) {
+                            deleteInspection(inspection.id)
+                          }
+                        }}
+                        className="gap-2"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )
+            })}
+          </div>
+        )}
+      </div>
+    </AppShell>
+  )
+}
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
