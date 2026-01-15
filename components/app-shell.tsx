@@ -56,7 +56,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* Desktop sidebar */}
       <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:flex lg:w-64 lg:flex-col bg-sidebar border-r border-sidebar-border">
         <div className="flex h-16 items-center gap-2 px-6 border-b border-sidebar-border">
-          <ClipboardCheck className="h-7 w-7 text-sidebar-primary" />
+          <img src="/logo.png" alt="Logo" className="h-7 w-7" />
           <span className="text-lg font-semibold text-sidebar-foreground">{t("dashboard.title")}</span>
         </div>
         <div className="flex-1 overflow-y-auto py-4 px-3">

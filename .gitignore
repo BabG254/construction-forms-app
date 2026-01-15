@@ -23,6 +23,14 @@ yarn-error.log*
 .vercel
 
 # typescript
-.md
 *.tsbuildinfo
 next-env.d.ts
+
+# documentation (keep README.md only)
+ARCHITECTURE.md
+EXECUTIVE_SUMMARY.md
+IMPLEMENTATION_SUMMARY.md
+REFERENCE_DATA_GUIDE.md
+PROJECT_STATUS.md
+CHANGES_LOG.md
+COMPLETION_CERTIFICATE.txt
