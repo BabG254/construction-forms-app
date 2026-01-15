@@ -1,8 +1,25 @@
 "use client"
 
 import { create } from "zustand"
-import { persist } from "zustand/middleware"
+import { persist, createJSONStorage } from "zustand/middleware"
 import type { Observation, Incident, Inspection, FormListItem, Project, User, InspectionSection } from "./types"
+
+// Create a custom storage that checks for window availability
+const customStorage = {
+  getItem: (name: string) => {
+    if (typeof window === 'undefined') return null
+    const value = localStorage.getItem(name)
+    return value
+  },
+  setItem: (name: string, value: string) => {
+    if (typeof window === 'undefined') return
+    localStorage.setItem(name, value)
+  },
+  removeItem: (name: string) => {
+    if (typeof window === 'undefined') return
+    localStorage.removeItem(name)
+  },
+}
 
 // Mock data for demonstration
 const mockProjects: Project[] = [
@@ -313,12 +330,12 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: "construction-forms-storage",
+      storage: createJSONStorage(() => customStorage),
       partialize: (state) => ({
         observations: state.observations,
         incidents: state.incidents,
         inspections: state.inspections,
       }),
-      skipHydration: typeof window === 'undefined',
     },
   ),
 )
