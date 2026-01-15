@@ -61,9 +61,9 @@ function IncidentsContent() {
             <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
               <AlertTriangle className="h-8 w-8 text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-semibold mb-2">No incidents recorded</h3>
+            <h3 className="text-lg font-semibold mb-2">{t("empty.noIncidents")}</h3>
             <p className="text-muted-foreground text-center mb-4">
-              Report incidents to track and investigate safety events.
+              {t("empty.reportIncidents")}
             </p>
             <Button asChild>
               <Link href="/incidents/new">

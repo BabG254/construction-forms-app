@@ -50,7 +50,11 @@ export default function InspectionsPage() {
           <div>
             <h1 className="text-3xl font-bold">{t("nav.inspections")}</h1>
             <p className="text-muted-foreground">
-              {filtered.length} of {inspections.length} inspection{inspections.length !== 1 ? "s" : ""}
+              {t("list.countOf", { 
+                filtered: filtered.length, 
+                total: inspections.length,
+                type: inspections.length !== 1 ? t("list.inspections") : t("list.inspection")
+              })}
             </p>
           </div>
           <Link href="/inspections/new">
@@ -93,10 +97,10 @@ export default function InspectionsPage() {
             <CardContent className="pt-12 pb-12 text-center">
               <ClipboardCheck className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
               <h3 className="font-semibold text-lg mb-2">
-                {inspections.length === 0 ? t("empty.noInspections") : "No matching inspections"}
+                {inspections.length === 0 ? t("empty.noInspections") : t("empty.noMatchingInspections")}
               </h3>
               <p className="text-muted-foreground mb-4">
-                {inspections.length === 0 ? t("empty.createFirst") : "Try adjusting your search or filters"}
+                {inspections.length === 0 ? t("empty.createFirst") : t("empty.adjustFilters")}
               </p>
               {inspections.length === 0 && (
                 <Link href="/inspections/new">

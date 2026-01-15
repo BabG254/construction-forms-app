@@ -93,40 +93,40 @@ export default function NewIncidentPage() {
 
     // Required fields validation
     if (!formData.title?.trim()) {
-      newErrors.title = "Incident title is required"
+      newErrors.title = t("error.incidentTitleRequired")
     }
     if (!formData.projectId) {
-      newErrors.projectId = "Project is required"
+      newErrors.projectId = t("error.projectRequired")
     }
     if (!formData.location?.trim()) {
-      newErrors.location = "Location is required"
+      newErrors.location = t("error.locationRequired")
     }
     if (!formData.eventDate) {
-      newErrors.eventDate = "Event date is required"
+      newErrors.eventDate = t("error.eventDateRequired")
     }
     if (!formData.eventTime) {
-      newErrors.eventTime = "Event time is required"
+      newErrors.eventTime = t("error.eventTimeRequired")
     }
     if (!formData.accidentType) {
-      newErrors.accidentType = "Accident type is required"
+      newErrors.accidentType = t("error.accidentTypeRequired")
     }
     if (!formData.description?.trim()) {
-      newErrors.description = "Incident description is required"
+      newErrors.description = t("error.descriptionRequired")
     }
 
     // Medical treatment validation
     if (hasMedicalTreatment) {
       if (!formData.injuryType) {
-        newErrors.injuryType = "Injury type is required when medical treatment is reported"
+        newErrors.injuryType = t("error.injuryTypeRequired")
       }
       if (!formData.bodyPart) {
-        newErrors.bodyPart = "Body part is required when medical treatment is reported"
+        newErrors.bodyPart = t("error.bodyPartRequired")
       }
       if (isFatal && !formData.dateOfDeath) {
-        newErrors.dateOfDeath = "Date of death is required"
+        newErrors.dateOfDeath = t("error.dateOfDeathRequired")
       }
       if (!isFatal && !formData.returnToWorkDate && formData.daysAbsent > 0) {
-        newErrors.returnToWorkDate = "Return to work date is required when days absent > 0"
+        newErrors.returnToWorkDate = t("error.returnToWorkDateRequired")
       }
     }
 
@@ -194,7 +194,7 @@ export default function NewIncidentPage() {
       toast.success(t("status.savedLocally"))
       router.push("/incidents")
     } catch (error) {
-      toast.error("Failed to save draft")
+      toast.error(t("alert.saveDraft.error"))
       console.error(error)
     } finally {
       setIsSaving(false)
@@ -206,7 +206,7 @@ export default function NewIncidentPage() {
       e.preventDefault()
 
       if (!validateForm()) {
-        toast.error("Please fix the errors in the form")
+        toast.error(t("alert.fixErrors"))
         return
       }
 
@@ -214,10 +214,10 @@ export default function NewIncidentPage() {
       try {
         const incident = createIncidentObject("submitted")
         addIncident(incident)
-        toast.success("Incident submitted successfully and saved locally")
+        toast.success(t("alert.saveSuccess.incident"))
         router.push("/incidents")
       } catch (error) {
-        toast.error("Failed to submit incident")
+        toast.error(t("alert.saveError.incident"))
         console.error(error)
       } finally {
         setIsSubmitting(false)
@@ -297,7 +297,7 @@ export default function NewIncidentPage() {
               <Input
                 value={formData.title}
                 onChange={(e) => handleFieldChange("title", e.target.value)}
-                placeholder="Brief title or summary of the incident"
+                placeholder={t("incident.titlePlaceholder")}
                 className={`h-12 ${errors.title ? "border-destructive" : ""}`}
               />
             </FormField>
@@ -306,7 +306,7 @@ export default function NewIncidentPage() {
             <FormField label={t("form.project")} required error={errors.projectId}>
               <Select value={formData.projectId} onValueChange={(value) => handleFieldChange("projectId", value)}>
                 <SelectTrigger className={`h-12 ${errors.projectId ? "border-destructive" : ""}`}>
-                  <SelectValue placeholder="Select project" />
+                  <SelectValue placeholder={t("incident.selectProject")} />
                 </SelectTrigger>
                 <SelectContent>
                   {projects.map((project) => (
@@ -323,7 +323,7 @@ export default function NewIncidentPage() {
               <Input
                 value={formData.location}
                 onChange={(e) => handleFieldChange("location", e.target.value)}
-                placeholder="e.g., North Building Site, Basement Level 2"
+                placeholder={t("incident.locationPlaceholder")}
                 className={`h-12 ${errors.location ? "border-destructive" : ""}`}
               />
             </FormField>
@@ -352,7 +352,7 @@ export default function NewIncidentPage() {
             <FormField label={t("incident.accidentType")} required error={errors.accidentType}>
               <Select value={formData.accidentType} onValueChange={(value) => handleFieldChange("accidentType", value)}>
                 <SelectTrigger className={`h-12 ${errors.accidentType ? "border-destructive" : ""}`}>
-                  <SelectValue placeholder="Select accident type" />
+                  <SelectValue placeholder={t("incident.selectAccidentType")} />
                 </SelectTrigger>
                 <SelectContent>
                   {accidentTypes.map((type) => (
@@ -360,7 +360,7 @@ export default function NewIncidentPage() {
                       <div className="flex items-center gap-2">
                         <span>{type.label}</span>
                         {type.riskLevel === "critical" && (
-                          <span className="text-xs bg-destructive/20 text-destructive px-2 py-1 rounded">Critical</span>
+                          <span className="text-xs bg-destructive/20 text-destructive px-2 py-1 rounded">{t("incident.critical")}</span>
                         )}
                       </div>
                     </SelectItem>
@@ -377,7 +377,7 @@ export default function NewIncidentPage() {
               <Input
                 value={formData.concernedCompany}
                 onChange={(e) => handleFieldChange("concernedCompany", e.target.value)}
-                placeholder="e.g., ABC Construction Co."
+                placeholder={t("incident.concernedCompanyPlaceholder")}
                 className="h-12"
               />
             </FormField>
@@ -392,15 +392,15 @@ export default function NewIncidentPage() {
           onToggle={() => toggleSection("description")}
         >
           <FormField
-            label="What happened?"
+            label={t("incident.whatHappened")}
             required
             error={errors.description}
-            description="Provide a detailed account of the incident. Include who was involved, their roles, what they were doing, what equipment or materials were being used, weather conditions, and any other relevant circumstances."
+            description={t("incident.whatHappenedDesc")}
           >
             <Textarea
               value={formData.description}
               onChange={(e) => handleFieldChange("description", e.target.value)}
-              placeholder="Be as detailed as possible. This information is crucial for investigation and prevention of future incidents."
+              placeholder={t("incident.descriptionPlaceholder")}
               rows={8}
               className={`min-h-[200px] ${errors.description ? "border-destructive" : ""}`}
             />
@@ -413,41 +413,41 @@ export default function NewIncidentPage() {
           collapsible={true}
           defaultOpen={expandedSections.has("investigation")}
           onToggle={() => toggleSection("investigation")}
-          description="Analyze the root causes and contributing factors to this incident"
+          description={t("incident.investigationDesc")}
         >
           <div className="space-y-4">
             <FormField
               label={t("observation.danger")}
-              description="What hazard, danger, or unsafe condition allowed this incident to occur?"
+              description={t("incident.dangerDesc")}
             >
               <Textarea
                 value={formData.danger}
                 onChange={(e) => handleFieldChange("danger", e.target.value)}
-                placeholder="e.g., Slippery floor due to spilled water, Missing guardrail, Inadequate lighting"
+                placeholder={t("incident.dangerPlaceholder")}
                 rows={3}
               />
             </FormField>
 
             <FormField
               label={t("observation.contributingCondition")}
-              description="What environmental, equipment, or workplace conditions contributed?"
+              description={t("incident.contributingConditionDesc")}
             >
               <Textarea
                 value={formData.contributingCondition}
                 onChange={(e) => handleFieldChange("contributingCondition", e.target.value)}
-                placeholder="e.g., Worn equipment, Poor visibility, Crowded work area, Lack of maintenance"
+                placeholder={t("incident.contributingConditionPlaceholder")}
                 rows={3}
               />
             </FormField>
 
             <FormField
               label={t("observation.contributingBehavior")}
-              description="What actions, decisions, or behaviors contributed to the incident?"
+              description={t("incident.contributingBehaviorDesc")}
             >
               <Textarea
                 value={formData.contributingBehavior}
                 onChange={(e) => handleFieldChange("contributingBehavior", e.target.value)}
-                placeholder="e.g., Worker not wearing PPE, Taking unsafe shortcut, Rushing due to time pressure"
+                placeholder={t("incident.contributingBehaviorPlaceholder")}
                 rows={3}
               />
             </FormField>
@@ -460,17 +460,17 @@ export default function NewIncidentPage() {
           collapsible={true}
           defaultOpen={expandedSections.has("medical") || hasMedicalTreatment}
           onToggle={() => toggleSection("medical")}
-          description="Complete this section only if medical treatment was required"
+          description={t("incident.medicalTreatmentDesc")}
         >
           <div className="space-y-6">
             {/* Medical Treatment Toggle */}
             <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg border border-border">
               <div>
                 <Label htmlFor="hasMedical" className="font-semibold cursor-pointer">
-                  Medical treatment was required
+                  {t("incident.medicalTreatmentLabel")}
                 </Label>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Check this if the injured person received any medical care or attention
+                  {t("incident.medicalTreatmentInfo")}
                 </p>
               </div>
               <Switch
@@ -488,7 +488,7 @@ export default function NewIncidentPage() {
                     label={t("incident.injuryType")}
                     required
                     error={errors.injuryType}
-                    description="Select the type of injury sustained"
+                    description={t("incident.selectInjuryTypeDesc")}
                   >
                     <Select
                       value={formData.injuryType}
@@ -498,7 +498,7 @@ export default function NewIncidentPage() {
                       }}
                     >
                       <SelectTrigger className={`h-12 ${errors.injuryType ? "border-destructive" : ""}`}>
-                        <SelectValue placeholder="Select injury type" />
+                        <SelectValue placeholder={t("incident.selectInjuryType")} />
                       </SelectTrigger>
                       <SelectContent>
                         {injuryTypes.map((type) => (
@@ -507,7 +507,7 @@ export default function NewIncidentPage() {
                               <span>{type.label}</span>
                               {type.severity === "critical" && (
                                 <span className="text-xs bg-destructive/20 text-destructive px-1 rounded">
-                                  Critical
+                                  {t("incident.critical")}
                                 </span>
                               )}
                             </div>
@@ -517,7 +517,7 @@ export default function NewIncidentPage() {
                     </Select>
                     {formData.injuryType && (
                       <p className="text-sm text-muted-foreground mt-1">
-                        Severity: {getInjuryTypeSeverity(formData.injuryType) || "Unknown"}
+                        {t("incident.severity")}: {getInjuryTypeSeverity(formData.injuryType) || t("incident.unknown")}
                       </p>
                     )}
                   </FormField>
@@ -526,11 +526,11 @@ export default function NewIncidentPage() {
                     label={t("incident.bodyPart")}
                     required
                     error={errors.bodyPart}
-                    description="Which body part was injured?"
+                    description={t("incident.selectBodyPartDesc")}
                   >
                     <Select value={formData.bodyPart} onValueChange={(value) => handleFieldChange("bodyPart", value)}>
                       <SelectTrigger className={`h-12 ${errors.bodyPart ? "border-destructive" : ""}`}>
-                        <SelectValue placeholder="Select body part" />
+                        <SelectValue placeholder={t("incident.selectBodyPart")} />
                       </SelectTrigger>
                       <SelectContent>
                         {Object.entries(bodyPartsByCategory).map(([category, parts]) => (
@@ -585,7 +585,7 @@ export default function NewIncidentPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     label={t("incident.daysAbsent")}
-                    description="Number of work days missed due to injury (0 = no time lost)"
+                    description={t("incident.daysAbsentDesc")}
                   >
                     <Input
                       type="number"
@@ -599,7 +599,7 @@ export default function NewIncidentPage() {
 
                   <FormField
                     label={t("incident.restrictedDays")}
-                    description="Number of days on restricted/modified duty"
+                    description={t("incident.restrictedDaysDesc")}
                   >
                     <Input
                       type="number"
@@ -618,7 +618,7 @@ export default function NewIncidentPage() {
                 {!isFatal && (
                   <FormField
                     label={t("incident.returnDate")}
-                    description="When did the worker return to full duty?"
+                    description={t("incident.returnDateDesc")}
                     error={errors.returnToWorkDate}
                   >
                     <Input
@@ -645,7 +645,7 @@ export default function NewIncidentPage() {
                     label={t("incident.dateOfDeath")}
                     required
                     error={errors.dateOfDeath}
-                    description="Date when the worker passed away"
+                    description={t("incident.dateOfDeathDesc")}
                   >
                     <Input
                       type="date"
@@ -666,7 +666,7 @@ export default function NewIncidentPage() {
           collapsible={true}
           defaultOpen={expandedSections.has("attachments")}
           onToggle={() => toggleSection("attachments")}
-          description="Add photos, documents, or other supporting evidence (optional)"
+          description={t("incident.attachmentsDesc")}
         >
           <AttachmentUpload
             attachments={formData.attachments}
