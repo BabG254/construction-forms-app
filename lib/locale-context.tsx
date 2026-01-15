@@ -35,6 +35,7 @@ const translations = {
     "status.open": "Open",
     "status.closed": "Closed",
     "status.inProgress": "In Progress",
+    "status.archived": "Archived",
 
     // Form common
     "form.save": "Save",
@@ -129,6 +130,15 @@ const translations = {
     "action.view": "View",
     "action.search": "Search",
     "action.filter": "Filter",
+    "action.new": "New",
+
+    // Fields
+    "field.type": "Type",
+    "field.location": "Location",
+
+    // Empty states
+    "empty.noObservations": "No observations yet",
+    "empty.createFirst": "Create the first observation to get started",
 
     // Time
     "time.today": "Today",
@@ -166,6 +176,7 @@ const translations = {
     "status.open": "Ouvert",
     "status.closed": "Fermé",
     "status.inProgress": "En cours",
+    "status.archived": "Archivé",
 
     // Form common
     "form.save": "Enregistrer",
@@ -260,6 +271,15 @@ const translations = {
     "action.view": "Voir",
     "action.search": "Rechercher",
     "action.filter": "Filtrer",
+    "action.new": "Nouveau",
+
+    // Fields
+    "field.type": "Type",
+    "field.location": "Emplacement",
+
+    // Empty states
+    "empty.noObservations": "Aucune observation",
+    "empty.createFirst": "Créez la première observation pour commencer",
 
     // Time
     "time.today": "Aujourd'hui",
@@ -280,7 +300,7 @@ interface LocaleContextType {
 const LocaleContext = createContext<LocaleContextType | undefined>(undefined)
 
 export function LocaleProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocale] = useState<Locale>("en")
+  const [locale, setLocale] = useState<Locale>("fr")
 
   const t = useCallback(
     (key: TranslationKey, params?: Record<string, string | number>) => {
