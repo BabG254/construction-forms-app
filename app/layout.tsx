@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/sonner"
 import { LocaleProvider } from "@/lib/locale-context"
 import { OfflineProvider } from "@/lib/offline-provider"
 import { SyncStatusBanner } from "@/components/sync-status-banner"
+import { StoreHydration } from "@/components/store-hydration"
 import "./globals.css"
 
 const _geist = Geist({ subsets: ["latin"] })
@@ -40,6 +41,7 @@ export default function RootLayout({
       <body className="font-sans antialiased">
         <LocaleProvider>
           <OfflineProvider>
+            <StoreHydration />
             {children}
             <SyncStatusBanner />
             <Toaster position="top-right" />

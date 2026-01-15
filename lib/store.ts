@@ -331,6 +331,7 @@ export const useAppStore = create<AppState>()(
     {
       name: "construction-forms-storage",
       storage: createJSONStorage(() => customStorage),
+      skipHydration: true,
       partialize: (state) => ({
         observations: state.observations,
         incidents: state.incidents,
