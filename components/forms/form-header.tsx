@@ -7,7 +7,7 @@ import Link from "next/link"
 
 interface FormHeaderProps {
   title: string
-  backHref: string
+  backHref?: string
   onSaveDraft?: () => void
   onExportPdf?: () => void
   isSaving?: boolean
@@ -15,13 +15,14 @@ interface FormHeaderProps {
 
 export function FormHeader({ title, backHref, onSaveDraft, onExportPdf, isSaving }: FormHeaderProps) {
   const { t } = useLocale()
+  const resolvedBackHref = backHref ?? "/"
 
   return (
     <div className="sticky top-0 z-30 bg-background border-b">
       <div className="flex items-center justify-between h-16 px-4 md:px-6">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" className="h-10 w-10" asChild>
-            <Link href={backHref}>
+            <Link href={resolvedBackHref}>
               <ArrowLeft className="h-5 w-5" />
               <span className="sr-only">{t("action.back")}</span>
             </Link>

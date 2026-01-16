@@ -19,6 +19,7 @@ export default function NewObservation() {
   const router = useRouter()
   const { addObservation, projects, currentUser } = useAppStore()
   const { t } = useLocale()
+  const observationTypes = getObservationTypes()
   const [files, setFiles] = useState<File[]>([])
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -121,6 +122,7 @@ export default function NewObservation() {
       <FormHeader
         title={t("dashboard.newObservation")}
         description={t("observation.title")}
+        backHref="/observations"
       />
 
       {/* Priority indicators */}
