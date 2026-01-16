@@ -269,10 +269,20 @@ export default function UsersPage() {
                             variant="ghost"
                             size="sm"
                             onClick={() => {
-                              deleteAuthUser(currentUser.id)
-                              toast.success(`${t("name")}: ${currentUser.name} deleted`)
+                              // Prevent deleting your own account
+                              if (user && currentUser.email === user.email) {
+                                toast.error("You cannot delete your own account")
+                                return
+                              }
+                              
+                              if (confirm(`Delete user ${currentUser.name}?`)) {
+                                deleteAuthUser(currentUser.id)
+                                toast.success(`${t("name")}: ${currentUser.name} deleted`)
+                              }
                             }}
                             className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            disabled={user && currentUser.email === user.email}
+                            title={user && currentUser.email === user.email ? "Cannot delete your own account" : "Delete user"}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
