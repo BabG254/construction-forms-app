@@ -3,6 +3,7 @@
 import { useState, useCallback, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { FormHeader, FormSection, FormField, DistributionSelector } from "@/components/forms"
+import { AppShell } from "@/components/app-shell"
 
 export const dynamic = 'force-dynamic'
 export const dynamicParams = true
@@ -177,12 +178,51 @@ export default function NewInspection() {
 
   const stats = getResponseStats()
 
+  const handleSaveDraft = useCallback(async () => {
+    if (!formData.documentTitle.trim()) {
+      alert(t("error.titleRequired"))
+      return
+    }
+    try {
+      const inspection: Inspection = {
+        id: `insp-${Date.now()}`,
+        number: `INSP-${Math.floor(Math.random() * 10000)}`,
+        documentTitle: formData.documentTitle,
+        type: formData.type,
+        projectId: formData.projectId,
+        description: formData.description,
+        responses: Object.entries(formData.responses).map(([itemId, response]) => ({
+          itemId,
+          response: response.response,
+          comment: response.comment || "",
+          attachments: response.attachments || [],
+        })),
+        status: "draft" as const,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        closedAt: null,
+        closedBy: null,
+        syncStatus: "pending",
+        createdBy: currentUser?.name || "Unknown",
+      }
+      addInspection(inspection)
+      alert(t("status.savedLocally"))
+      router.push("/inspections")
+    } catch (error) {
+      alert(t("alert.saveDraft.error"))
+    }
+  }, [formData.documentTitle, formData.type, formData.projectId, formData.description, formData.responses, addInspection, currentUser, router, t])
+
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
+    <AppShell>
       <FormHeader
         title={t("inspection.title")}
-        description={t("inspection.instruction")}
+        backHref="/inspections"
+        onSaveDraft={handleSaveDraft}
+        isSaving={false}
       />
+
+      <div className="max-w-5xl mx-auto space-y-6 p-4 md:p-6 lg:p-8">
 
       {/* Progress Card */}
       <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 border-blue-200">
@@ -419,5 +459,6 @@ export default function NewInspection() {
         </div>
       </form>
     </div>
+  </AppShell>
   )
 }

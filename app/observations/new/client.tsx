@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { FormHeader, FormSection, FormField, AttachmentUpload, DistributionSelector } from "@/components/forms"
+import { AppShell } from "@/components/app-shell"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -179,13 +180,51 @@ export default function NewObservation() {
   }
   const selectedType = observationTypes?.find((t) => t.id === formData.type)
   const selectedProject = projects?.find((p) => p.id === formData.projectId)
+  
+  const handleSaveDraft = useCallback(async () => {
+    if (!formData.title.trim()) {
+      alert(t("error.titleRequired"))
+      return
+    }
+    try {
+      const observation: Observation = {
+        id: `obs-${Date.now()}`,
+        number: `OBS-${Math.floor(Math.random() * 10000)}`,
+        title: formData.title,
+        type: formData.type,
+        projectId: formData.projectId,
+        projectNumber: formData.projectNumber,
+        location: formData.location,
+        description: formData.description,
+        priority: formData.priority,
+        concernedCompany: formData.concernedCompany,
+        referenceArticle: formData.referenceArticle,
+        safetyAnalysis: formData.safetyAnalysis,
+        attachments: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        status: "draft" as const,
+        syncStatus: "pending",
+        createdBy: currentUser?.name || "Unknown",
+      }
+      addObservation(observation)
+      alert(t("status.savedLocally"))
+      router.push("/observations")
+    } catch (error) {
+      alert(t("alert.saveDraft.error"))
+    }
+  }, [formData.title, formData.type, formData.projectId, formData.projectNumber, formData.location, formData.description, formData.priority, formData.concernedCompany, formData.referenceArticle, formData.safetyAnalysis, addObservation, currentUser, router, t])
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <AppShell>
       <FormHeader
-        title={t("dashboard.newObservation")}
+        title={t("observation.title")}
         backHref="/observations"
+        onSaveDraft={handleSaveDraft}
+        isSaving={false}
       />
+
+      <div className="max-w-4xl mx-auto space-y-6 p-4 md:p-6 lg:p-8">
 
       {/* Priority indicators */}
       <div className="grid grid-cols-3 gap-4">
@@ -454,5 +493,6 @@ export default function NewObservation() {
         </div>
       </form>
     </div>
+  </AppShell>
   )
 }

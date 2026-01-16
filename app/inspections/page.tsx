@@ -96,22 +96,22 @@ export default function InspectionsPage() {
         {/* Empty State */}
         {filtered.length === 0 && (
           <div className="w-full max-w-2xl mx-auto">
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-16 px-6">
-                <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-6">
-                  <ClipboardCheck className="h-8 w-8 text-muted-foreground" />
+            <Card className="border-dashed">
+              <CardContent className="flex flex-col items-center justify-center py-20 px-6">
+                <div className="w-20 h-20 rounded-full bg-muted/50 flex items-center justify-center mb-8">
+                  <ClipboardCheck className="h-10 w-10 text-muted-foreground/70" />
                 </div>
-                <h3 className="text-xl font-semibold mb-3 text-center">
-                  {inspections.length === 0 ? t("empty.noInspections") : t("empty.noMatchingInspections")}
+                <h3 className="text-2xl font-semibold mb-3 text-center text-foreground">
+                  {inspections.length === 0 ? "Aucune inspection" : t("empty.noMatchingInspections")}
                 </h3>
-                <p className="text-muted-foreground text-center mb-8 max-w-sm">
-                  {inspections.length === 0 ? t("empty.scheduleInspections") : t("empty.adjustFilters")}
+                <p className="text-muted-foreground text-center mb-10 max-w-sm leading-relaxed">
+                  {inspections.length === 0 ? "Planifiez et effectuez des inspections pour assurer la conformité et la sécurité du site" : t("empty.adjustFilters")}
                 </p>
                 {inspections.length === 0 && (
                   <Link href="/inspections/new">
-                    <Button size="lg">
-                      <Plus className="h-4 w-4 mr-2" />
-                      {t("action.new")}
+                    <Button size="lg" className="gap-2">
+                      <Plus className="h-5 w-5" />
+                      Nouvelle inspection
                     </Button>
                   </Link>
                 )}

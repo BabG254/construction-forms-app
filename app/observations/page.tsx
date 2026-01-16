@@ -95,24 +95,24 @@ export default function ObservationsPage() {
         {/* Empty State */}
         {filtered.length === 0 && (
           <div className="w-full max-w-2xl mx-auto">
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-16 px-6">
-                <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-6">
-                  <Eye className="h-8 w-8 text-muted-foreground" />
+            <Card className="border-dashed">
+              <CardContent className="flex flex-col items-center justify-center py-20 px-6">
+                <div className="w-20 h-20 rounded-full bg-muted/50 flex items-center justify-center mb-8">
+                  <Eye className="h-10 w-10 text-muted-foreground/70" />
                 </div>
-                <h3 className="text-xl font-semibold mb-3 text-center">
-                  {observations.length === 0 ? t("empty.noObservations") : "No matching observations"}
+                <h3 className="text-2xl font-semibold mb-3 text-center text-foreground">
+                  {observations.length === 0 ? "Aucune observation" : "Aucune observation correspondante"}
                 </h3>
-                <p className="text-muted-foreground text-center mb-8 max-w-sm">
+                <p className="text-muted-foreground text-center mb-10 max-w-sm leading-relaxed">
                   {observations.length === 0
-                    ? t("empty.recordObservations")
+                    ? "Enregistrez les observations pour documenter les conditions de sécurité et les améliorations requises"
                     : t("empty.adjustFilters")}
                 </p>
                 {observations.length === 0 && (
                   <Link href="/observations/new">
-                    <Button size="lg">
-                      <Plus className="h-4 w-4 mr-2" />
-                      {t("action.new")}
+                    <Button size="lg" className="gap-2">
+                      <Plus className="h-5 w-5" />
+                      Nouvelle observation
                     </Button>
                   </Link>
                 )}

@@ -60,19 +60,19 @@ function IncidentsContent() {
       {/* List */}
       {incidents.length === 0 ? (
         <div className="w-full max-w-2xl mx-auto">
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-16 px-6">
-              <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-6">
-                <AlertTriangle className="h-8 w-8 text-muted-foreground" />
+          <Card className="border-dashed">
+            <CardContent className="flex flex-col items-center justify-center py-20 px-6">
+              <div className="w-20 h-20 rounded-full bg-muted/50 flex items-center justify-center mb-8">
+                <AlertTriangle className="h-10 w-10 text-muted-foreground/70" />
               </div>
-              <h3 className="text-xl font-semibold mb-3 text-center">{t("empty.noIncidents")}</h3>
-              <p className="text-muted-foreground text-center mb-8 max-w-sm">
-                {t("empty.reportIncidents")}
+              <h3 className="text-2xl font-semibold mb-3 text-center text-foreground">Aucun incident</h3>
+              <p className="text-muted-foreground text-center mb-10 max-w-sm leading-relaxed">
+                Signalez les incidents pour suivre et enquêter sur les événements de sécurité
               </p>
-              <Button asChild size="lg">
+              <Button asChild size="lg" className="gap-2">
                 <Link href="/incidents/new">
-                  <Plus className="h-4 w-4 mr-2" />
-                  {t("dashboard.newIncident")}
+                  <Plus className="h-5 w-5" />
+                  Nouvel incident
                 </Link>
               </Button>
             </CardContent>

@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/sonner"
 import { LocaleProvider } from "@/lib/locale-context"
 import { AuthProvider } from "@/lib/auth-context"
 import { OfflineProvider } from "@/lib/offline-provider"
+import { ThemeProvider } from "@/components/theme-provider"
 import { SyncStatusBanner } from "@/components/sync-status-banner"
 import { StoreHydration } from "@/components/store-hydration"
 import { InitDemoUsers } from "@/components/init-demo-users"
@@ -39,19 +40,26 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className="font-sans antialiased">
-        <LocaleProvider>
-          <AuthProvider>
-            <OfflineProvider>
-              <StoreHydration />
-              <InitDemoUsers />
-              {children}
-              <SyncStatusBanner />
-              <Toaster position="top-right" />
-            </OfflineProvider>
-          </AuthProvider>
-        </LocaleProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <LocaleProvider>
+            <AuthProvider>
+              <OfflineProvider>
+                <StoreHydration />
+                <InitDemoUsers />
+                {children}
+                <SyncStatusBanner />
+                <Toaster position="top-right" />
+              </OfflineProvider>
+            </AuthProvider>
+          </LocaleProvider>
+        </ThemeProvider>
         <Analytics />
       </body>
     </html>
