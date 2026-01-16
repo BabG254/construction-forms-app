@@ -32,8 +32,8 @@ export default function UsersPage() {
   const addAuthUser = useAppStore((state) => state.addAuthUser)
   const deleteAuthUser = useAppStore((state) => state.deleteAuthUser)
 
-  // Only allow admins
-  if (!user || user.role !== "admin") {
+  // Allow admins and supervisors to manage users
+  if (!user || (user.role !== "admin" && user.role !== "supervisor")) {
     return (
       <div className="container py-8">
         <Alert variant="destructive">
@@ -43,6 +43,16 @@ export default function UsersPage() {
       </div>
     )
   }
+
+  // Supervisors can only create worker accounts
+  const canCreateSupervisorOrAdmin = user.role === "admin"
+
+  // Set default role based on user permissions
+  React.useEffect(() => {
+    if (!canCreateSupervisorOrAdmin && newUserRole !== "worker") {
+      setNewUserRole("worker")
+    }
+  }, [canCreateSupervisorOrAdmin, newUserRole])
 
   const handleAddUser = () => {
     setFormError("")
@@ -158,11 +168,16 @@ export default function UsersPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="admin">{t("admin")}</SelectItem>
-                    <SelectItem value="supervisor">{t("supervisor")}</SelectItem>
+                    {canCreateSupervisorOrAdmin && <SelectItem value="admin">{t("admin")}</SelectItem>}
+                    {canCreateSupervisorOrAdmin && <SelectItem value="supervisor">{t("supervisor")}</SelectItem>}
                     <SelectItem value="worker">{t("worker")}</SelectItem>
                   </SelectContent>
                 </Select>
+                {!canCreateSupervisorOrAdmin && (
+                  <p className="text-xs text-muted-foreground">
+                    {t("supervisorsCanOnlyCreateWorkers")}
+                  </p>
+                )}
               </div>
 
               <div className="flex gap-2 justify-end">

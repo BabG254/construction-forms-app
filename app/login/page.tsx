@@ -55,12 +55,10 @@ export default function LoginPage() {
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="bg-blue-600 dark:bg-blue-500 p-3 rounded-lg">
-              <Lock className="h-6 w-6 text-white" />
-            </div>
+            <img src="/logo.png" alt="Logo" className="h-16 w-16 object-contain" />
           </div>
-          <CardTitle className="text-2xl">Construction Forms</CardTitle>
-          <CardDescription>Sign in to your account</CardDescription>
+          <CardTitle className="text-2xl">Formulaires de chantier</CardTitle>
+          <CardDescription>{t("loginTitle")}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
@@ -100,34 +98,9 @@ export default function LoginPage() {
             )}
 
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Signing in..." : "Sign In"}
+              {isLoading ? t("loggingIn") : t("login")}
             </Button>
           </form>
-
-          {authUsers.length > 0 && (
-            <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
-              <div className="flex items-start gap-2 mb-3">
-                <Info className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
-                <div>
-                  <p className="text-sm font-semibold text-blue-900 dark:text-blue-100">{t("demoCredentials")}</p>
-                  <p className="text-xs text-blue-800 dark:text-blue-300">{t("demoCredentialsDescription")}</p>
-                </div>
-              </div>
-              <div className="space-y-2">
-                {authUsers.map((user) => (
-                  <div
-                    key={user.id}
-                    className="text-xs bg-white dark:bg-slate-800 p-2 rounded border border-blue-100 dark:border-blue-900"
-                  >
-                    <p className="font-medium text-slate-900 dark:text-white">{user.name}</p>
-                    <p className="text-blue-700 dark:text-blue-300">
-                      {user.email} / {user.role === "admin" ? "admin123" : user.role === "supervisor" ? "supervisor123" : "worker123"}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </CardContent>
       </Card>
     </div>

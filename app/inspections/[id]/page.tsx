@@ -3,6 +3,7 @@
 import { use } from "react"
 import { format } from "date-fns"
 import { ClipboardCheck, Building, User, FileText, Check, X, Minus, Calendar, MessageSquare } from "lucide-react"
+import { useRouter } from "next/navigation"
 import { AppShell } from "@/components/app-shell"
 import { FormHeader } from "@/components/forms/form-header"
 import { FormSection } from "@/components/forms/form-section"
@@ -23,6 +24,7 @@ const statusVariants = {
 
 export default function InspectionDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
+  const router = useRouter()
   const { t, locale } = useLocale()
   const { inspections, projects, users } = useAppStore()
 
@@ -72,6 +74,7 @@ export default function InspectionDetailPage({ params }: { params: Promise<{ id:
       <FormHeader
         title={inspection.documentTitle || "Inspection"}
         backHref="/inspections"
+        onEdit={() => router.push(`/inspections/${id}/edit`)}
         onExportPdf={() => exportElementAsPdf({ elementId: "form-detail", filename: `${(inspection.documentTitle || "Inspection")}-${locale}.pdf` })}
       />
 
@@ -100,6 +103,22 @@ export default function InspectionDetailPage({ params }: { params: Promise<{ id:
         {/* Details */}
         <FormSection title={t("section.details")} collapsible={false}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+              <FileText className="h-5 w-5 text-muted-foreground" />
+              <div>
+                <p className="text-xs text-muted-foreground">{t("inspection.number")}</p>
+                <p className="font-medium font-mono">{inspection.id.slice(0, 8).toUpperCase()}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+              <Building className="h-5 w-5 text-muted-foreground" />
+              <div>
+                <p className="text-xs text-muted-foreground">{t("observation.projectNumber")}</p>
+                <p className="font-medium">{project?.number || project?.name || "-"}</p>
+              </div>
+            </div>
+
             <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
               <Building className="h-5 w-5 text-muted-foreground" />
               <div>

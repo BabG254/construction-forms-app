@@ -14,7 +14,7 @@ import {
   FileText,
   AlertCircle,
 } from "lucide-react"
-import { AppShell } from "@/components/app-shell"
+import { useRouter } from "next/navigation"
 import { FormHeader } from "@/components/forms/form-header"
 import { FormSection } from "@/components/forms/form-section"
 import { Badge } from "@/components/ui/badge"
@@ -33,6 +33,7 @@ const statusVariants = {
 
 export default function IncidentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
+  const router = useRouter()
   const { t, locale } = useLocale()
   const { incidents, projects, users } = useAppStore()
 
@@ -56,6 +57,7 @@ export default function IncidentDetailPage({ params }: { params: Promise<{ id: s
       <FormHeader
         title={incident.title || incident.number}
         backHref="/incidents"
+        onEdit={() => router.push(`/incidents/${id}/edit`)}
         onExportPdf={() => exportElementAsPdf({ elementId: "form-detail", filename: `${(incident.title || incident.number)}-${locale}.pdf` })}
       />
 

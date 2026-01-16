@@ -55,6 +55,7 @@ export default function ObservationDetailPage({ params }: { params: Promise<{ id
       <FormHeader
         title={observation.title || observation.number}
         backHref="/observations"
+        onEdit={() => router.push(`/observations/${id}/edit`)}
         onExportPdf={() => exportElementAsPdf({ elementId: "form-detail", filename: `${(observation.title || observation.number)}-${locale}.pdf` })}
       />
 

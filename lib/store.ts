@@ -448,9 +448,15 @@ export const useAppStore = create<AppState>()(
       storage: createJSONStorage(() => customStorage),
       skipHydration: true,
       partialize: (state) => ({
+        // Form data
         observations: state.observations,
         incidents: state.incidents,
         inspections: state.inspections,
+        // Auth data - persist for offline use
+        authUsers: state.authUsers,
+        userGroups: state.userGroups,
+        currentAuthUserId: state.currentAuthUserId,
+        formAssignments: state.formAssignments,
       }),
     },
   ),

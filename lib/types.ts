@@ -65,6 +65,7 @@ export interface Observation {
   title: string
   type: string
   projectId: string
+  projectNumber?: string
   creatorId: string
   assignedPersonId: string
   priority: Priority

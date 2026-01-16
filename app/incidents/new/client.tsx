@@ -21,22 +21,27 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { AlertTriangle, CheckCircle2, Clock } from "lucide-react"
+import { AlertTriangle, CheckCircle2, Clock, Mail, Save } from "lucide-react"
 import { useLocale } from "@/lib/locale-context"
 import { useAppStore } from "@/lib/store"
 import { getAccidentTypes, getInjuryTypes, getBodyParts } from "@/lib/reference-data-loader"
 import type { Incident, Attachment, FormStatus } from "@/lib/types"
+import { Card, CardContent } from "@/components/ui/card"
+import { DistributionSelector } from "@/components/forms"
 
 export default function NewIncidentPage() {
   const router = useRouter()
   const { t } = useLocale()
   const store = useAppStore()
-  const { projects = [], currentUser, addIncident } = store || {}
+  const { projects = [], currentUser, addIncident, authUsers = [], userGroups = [] } = store || {}
   
   // Load reference data on client side only
   const [accidentTypes, setAccidentTypes] = useState<any[]>([])
   const [injuryTypes, setInjuryTypes] = useState<any[]>([])
   const [bodyParts, setBodyParts] = useState<any[]>([])
+  const [selectedUserIds, setSelectedUserIds] = useState<string[]>([])
+  const [selectedGroupIds, setSelectedGroupIds] = useState<string[]>([])
+  const [sendNotifications, setSendNotifications] = useState(true)
   
   useEffect(() => {
     setAccidentTypes(getAccidentTypes())
@@ -157,6 +162,20 @@ export default function NewIncidentPage() {
 
   const createIncidentObject = useCallback(
     (status: FormStatus): Incident => {
+      // Build distribution list from selected users and groups
+      const distributionList: string[] = [...selectedUserIds]
+      
+      // Add all members from selected groups
+      selectedGroupIds.forEach((groupId) => {
+        const group = userGroups.find((g) => g.id === groupId)
+        if (group) {
+          distributionList.push(...group.memberIds)
+        }
+      })
+      
+      // Remove duplicates
+      const uniqueDistribution = Array.from(new Set(distributionList))
+
       return {
         id: Math.random().toString(36).substring(7),
         number: generateIncidentNumber(),
@@ -168,7 +187,7 @@ export default function NewIncidentPage() {
         eventTime: formData.eventTime,
         accidentType: formData.accidentType,
         status,
-        distribution: [],
+        distribution: uniqueDistribution,
         concernedCompany: formData.concernedCompany,
         description: formData.description,
         attachments: formData.attachments,
@@ -194,7 +213,7 @@ export default function NewIncidentPage() {
         syncStatus: "pending",
       }
     },
-    [formData, currentUser, hasMedicalTreatment, isFatal, generateIncidentNumber]
+    [formData, currentUser, hasMedicalTreatment, isFatal, generateIncidentNumber, selectedUserIds, selectedGroupIds, userGroups]
   )
 
   const handleSaveDraft = useCallback(async () => {
@@ -277,27 +296,25 @@ export default function NewIncidentPage() {
     <AppShell>
       <FormHeader title={t("incident.title")} backHref="/incidents" onSaveDraft={handleSaveDraft} isSaving={isSaving} />
 
-      <form onSubmit={handleSubmit} className="p-4 md:p-6 lg:p-8 max-w-4xl mx-auto space-y-6">
+      <div className="max-w-4xl mx-auto space-y-6 p-4 md:p-6 lg:p-8">
         {/* Critical Incident Alert */}
         {formData.accidentType &&
           accidentTypes?.find((t) => t.id === formData.accidentType)?.riskLevel === "critical" && (
             <Alert className="border-destructive/50 bg-destructive/10">
               <AlertTriangle className="h-4 w-4 text-destructive" />
               <AlertDescription className="text-destructive ml-2">
-                This is a CRITICAL incident type. Ensure all required fields are completed accurately. Management will
-                be notified immediately.
+                {t("incident.criticalAlert")}
               </AlertDescription>
             </Alert>
           )}
 
-        {/* Basic Information Section */}
-        <FormSection
-          title="Incident Information"
-          collapsible={true}
-          defaultOpen={expandedSections.has("incident-info")}
-          onToggle={() => toggleSection("incident-info")}
-        >
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <FormSection
+            title={t("incident.basicInfo")}
+            collapsible={true}
+            defaultOpen={true}
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Title */}
             <FormField
               label={t("form.title")}
@@ -399,8 +416,7 @@ export default function NewIncidentPage() {
         <FormSection
           title={t("form.description")}
           collapsible={true}
-          defaultOpen={expandedSections.has("description")}
-          onToggle={() => toggleSection("description")}
+          defaultOpen={true}
         >
           <FormField
             label={t("incident.whatHappened")}
@@ -422,9 +438,7 @@ export default function NewIncidentPage() {
         <FormSection
           title={t("incident.investigation")}
           collapsible={true}
-          defaultOpen={expandedSections.has("investigation")}
-          onToggle={() => toggleSection("investigation")}
-          description={t("incident.investigationDesc")}
+          defaultOpen={true}
         >
           <div className="space-y-4">
             <FormField
@@ -469,9 +483,7 @@ export default function NewIncidentPage() {
         <FormSection
           title={t("incident.medicalTreatment")}
           collapsible={true}
-          defaultOpen={expandedSections.has("medical") || hasMedicalTreatment}
-          onToggle={() => toggleSection("medical")}
-          description={t("incident.medicalTreatmentDesc")}
+          defaultOpen={hasMedicalTreatment}
         >
           <div className="space-y-6">
             {/* Medical Treatment Toggle */}
@@ -671,13 +683,39 @@ export default function NewIncidentPage() {
           </div>
         </FormSection>
 
+        {/* Distribution - Assign Users & Groups */}
+        <FormSection title={t("form.distribution")} defaultOpen>
+          <Alert className="mb-4">
+            <Mail className="h-4 w-4" />
+            <AlertDescription>
+              {t("sendEmailNotifications")}
+            </AlertDescription>
+          </Alert>
+          
+          <DistributionSelector
+            selectedUserIds={selectedUserIds}
+            selectedGroupIds={selectedGroupIds}
+            onUsersChange={setSelectedUserIds}
+            onGroupsChange={setSelectedGroupIds}
+          />
+          
+          <div className="flex items-center space-x-2 mt-4 p-4 bg-muted/50 rounded-lg">
+            <Switch
+              id="notify-incident"
+              checked={sendNotifications}
+              onCheckedChange={setSendNotifications}
+            />
+            <Label htmlFor="notify-incident" className="cursor-pointer">
+              {t("notifyUsers")}
+            </Label>
+          </div>
+        </FormSection>
+
         {/* Attachments Section */}
         <FormSection
           title={t("form.attachments")}
           collapsible={true}
-          defaultOpen={expandedSections.has("attachments")}
-          onToggle={() => toggleSection("attachments")}
-          description={t("incident.attachmentsDesc")}
+          defaultOpen={true}
         >
           <AttachmentUpload
             attachments={formData.attachments}
@@ -700,34 +738,25 @@ export default function NewIncidentPage() {
         </div>
 
         {/* Submit Button Group */}
-        <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t">
+        <div className="flex gap-3 bg-muted/50 p-4 rounded-lg sticky bottom-0">
           <Button
             type="button"
             variant="outline"
             onClick={() => router.push("/incidents")}
-            className="h-12 flex-1"
             disabled={isSaving || isSubmitting}
           >
             {t("form.cancel")}
           </Button>
           <Button
-            type="button"
-            variant="secondary"
-            onClick={handleSaveDraft}
-            className="h-12 flex-1"
-            disabled={isSaving || isSubmitting}
-          >
-            {isSaving ? "Saving..." : "Save as Draft"}
-          </Button>
-          <Button
             type="submit"
-            className="h-12 flex-1"
             disabled={isSaving || isSubmitting}
           >
-            {isSubmitting ? "Submitting..." : t("form.submit")}
+            <Save className="h-4 w-4 mr-2" />
+            {isSubmitting ? t("form.saving") : t("form.submit")}
           </Button>
         </div>
       </form>
+      </div>
     </AppShell>
   )
 }

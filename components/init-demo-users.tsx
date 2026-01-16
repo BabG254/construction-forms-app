@@ -19,29 +19,29 @@ export function InitDemoUsers() {
         return Buffer.from(password).toString("base64")
       }
 
-      // Create demo users
+      // Create demo users with .app email domain
       const demoUsers = [
         {
           id: "admin-user-1",
-          email: "admin@construction.local",
-          name: "Admin User",
-          passwordHash: simpleHash("admin123"),
+          email: "admin@construction.app",
+          name: "Admin",
+          passwordHash: simpleHash("Admin2026!"),
           role: "admin" as const,
           createdAt: new Date(),
         },
         {
           id: "supervisor-user-1",
-          email: "supervisor@construction.local",
-          name: "Supervisor User",
-          passwordHash: simpleHash("supervisor123"),
+          email: "supervisor@construction.app",
+          name: "Supervisor",
+          passwordHash: simpleHash("Super2026!"),
           role: "supervisor" as const,
           createdAt: new Date(),
         },
         {
           id: "worker-user-1",
-          email: "worker@construction.local",
-          name: "Worker User",
-          passwordHash: simpleHash("worker123"),
+          email: "worker@construction.app",
+          name: "Worker",
+          passwordHash: simpleHash("Work2026!"),
           role: "worker" as const,
           createdAt: new Date(),
         },

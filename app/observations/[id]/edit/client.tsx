@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback, useEffect } from "react"
+import { use } from "react"
 import { useRouter } from "next/navigation"
 import { FormHeader, FormSection, FormField, AttachmentUpload, DistributionSelector } from "@/components/forms"
 import { Button } from "@/components/ui/button"
@@ -14,11 +15,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { useAppStore } from "@/lib/store"
 import { getObservationTypes } from "@/lib/reference-data-loader"
-import { AlertTriangle, CheckCircle2, Mail } from "lucide-react"
+import { AlertTriangle, CheckCircle2, Mail, Save } from "lucide-react"
 import type { Observation, Attachment } from "@/lib/types"
 import { useLocale } from "@/lib/locale-context"
 
-export default function NewObservation() {
+export default function EditObservation({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params)
   const router = useRouter()
   const store = useAppStore()
   const { t } = useLocale()
@@ -30,14 +32,16 @@ export default function NewObservation() {
   const [selectedGroupIds, setSelectedGroupIds] = useState<string[]>([])
   const [sendNotifications, setSendNotifications] = useState(true)
 
-  // Safely destructure store with defaults
-  const { addObservation, projects = [], currentUser, authUsers = [], userGroups = [] } = store || {}
+  const { updateObservation, observations, projects = [], currentUser, authUsers = [], userGroups = [] } = store || {}
+
+  const observation = observations.find((o) => o.id === id)
 
   // Load observation types on client side only
   useEffect(() => {
     setObservationTypes(getObservationTypes())
   }, [])
 
+  // Initialize form data from observation
   const [formData, setFormData] = useState<{
     title: string
     type: string
@@ -54,16 +58,16 @@ export default function NewObservation() {
       contributingBehavior: string
     }
   }>(() => ({
-    title: "",
-    type: "",
-    projectId: (projects && Array.isArray(projects) && projects.length > 0) ? projects[0]?.id : "",
-    projectNumber: "",
+    title: observation?.title || "",
+    type: observation?.type || "",
+    projectId: observation?.projectId || (projects && Array.isArray(projects) && projects.length > 0) ? projects[0]?.id : "",
+    projectNumber: observation?.projectNumber || "",
     location: "",
-    description: "",
-    priority: "medium",
-    concernedCompany: "",
-    referenceArticle: "",
-    safetyAnalysis: {
+    description: observation?.description || "",
+    priority: (observation?.priority as any) || "medium",
+    concernedCompany: observation?.concernedCompany || "",
+    referenceArticle: observation?.referenceArticle || "",
+    safetyAnalysis: observation?.safetyAnalysis || {
       danger: "",
       contributingCondition: "",
       contributingBehavior: "",
@@ -99,10 +103,8 @@ export default function NewObservation() {
       setIsSubmitting(true)
 
       try {
-        // Build distribution list from selected users and groups
         const distributionList: string[] = [...selectedUserIds]
         
-        // Add all members from selected groups
         selectedGroupIds.forEach((groupId) => {
           const group = userGroups.find((g) => g.id === groupId)
           if (group) {
@@ -110,81 +112,63 @@ export default function NewObservation() {
           }
         })
         
-        // Remove duplicates
         const uniqueDistribution = Array.from(new Set(distributionList))
         
-        const observation: Observation = {
-          id: crypto.randomUUID(),
-          number: `OBS-${Date.now().toString().slice(-6)}`,
+        const updatedObservation: Observation = {
+          ...observation!,
           title: formData.title,
           type: formData.type,
           projectId: formData.projectId,
           projectNumber: formData.projectNumber,
-          creatorId: currentUser?.id || "unknown",
-          assignedPersonId: currentUser?.id || "unknown",
-          priority: formData.priority,
-          status: "open",
-          distribution: uniqueDistribution,
-          dueDate: null,
-          completionDate: null,
-          concernedCompany: formData.concernedCompany,
           description: formData.description,
+          priority: formData.priority,
+          concernedCompany: formData.concernedCompany,
           referenceArticle: formData.referenceArticle,
-          attachments: files.map((file) => ({
-            id: crypto.randomUUID(),
-            name: file.name,
-            type: file.type,
-            size: file.size,
-            url: URL.createObjectURL(file),
-            uploadedAt: new Date(),
-          })) as Attachment[],
+          distribution: uniqueDistribution,
           safetyAnalysis: formData.safetyAnalysis,
-          createdAt: new Date(),
           updatedAt: new Date(),
           syncStatus: "pending",
         }
 
-        addObservation(observation)
+        updateObservation(id, updatedObservation)
 
-        // Send email notifications if enabled
         if (sendNotifications && uniqueDistribution.length > 0) {
-          await sendEmailNotifications(observation, uniqueDistribution, authUsers)
+          console.log("📧 Email notifications would be sent to:")
+          uniqueDistribution.forEach((userId) => {
+            const user = authUsers.find((u) => u.id === userId)
+            if (user) {
+              console.log(`   → ${user.name} <${user.email}>`)
+            }
+          })
         }
 
-        // Show success message
         alert(t("alert.saveSuccess.observation"))
-        router.push("/observations")
+        router.push(`/observations/${id}`)
       } catch (error) {
-        console.error("Error saving observation:", error)
+        console.error("Error updating observation:", error)
         alert(t("alert.saveError.observation"))
       } finally {
         setIsSubmitting(false)
       }
     },
-    [formData, files, validateForm, addObservation, currentUser, router, selectedUserIds, selectedGroupIds, sendNotifications, userGroups, authUsers],
+    [formData, validateForm, updateObservation, id, selectedUserIds, selectedGroupIds, sendNotifications, userGroups, authUsers, observation, router, t],
   )
 
-  // Email notification function (simulated for now)
-  const sendEmailNotifications = async (observation: Observation, userIds: string[], users: any[]) => {
-    console.log("📧 Email notifications would be sent to:")
-    userIds.forEach((userId) => {
-      const user = users.find((u) => u.id === userId)
-      if (user) {
-        console.log(`   → ${user.name} <${user.email}>`)
-        console.log(`      Subject: New Observation Assignment - ${observation.title}`)
-        console.log(`      Body: You have been assigned to observation ${observation.number}`)
-      }
-    })
-    // In production, this would call an email API service
+  if (!observation) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-muted-foreground">{t("empty.notFound.observation")}</p>
+      </div>
+    )
   }
-  const selectedType = observationTypes?.find((t) => t.id === formData.type)
+
   const selectedProject = projects?.find((p) => p.id === formData.projectId)
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <FormHeader
-        title={t("dashboard.newObservation")}
-        backHref="/observations"
+        title={t("form.edit")}
+        backHref={`/observations/${id}`}
       />
 
       {/* Priority indicators */}
@@ -313,7 +297,7 @@ export default function NewObservation() {
         </FormSection>
 
         {/* Safety Analysis */}
-          <FormSection title={t("observation.safetyAnalysis")} defaultOpen>
+        <FormSection title={t("observation.safetyAnalysis")} defaultOpen>
           <Alert className="mb-4 bg-blue-50 border-blue-200 dark:bg-blue-950">
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
@@ -410,46 +394,14 @@ export default function NewObservation() {
           </div>
         </FormSection>
 
-        {/* Attachments */}
-        <FormSection title={t("form.attachments")}>
-          <AttachmentUpload 
-            attachments={[]}
-            onChange={() => {}}
-          />
-          {files.length > 0 && (
-            <div className="mt-4 space-y-2">
-              <h4 className="font-medium text-sm">{t("form.attachments")}</h4>
-              {files.map((file, idx) => (
-                <div key={idx} className="flex items-center justify-between p-2 bg-muted rounded">
-                  <span className="text-sm">{file.name}</span>
-                  <button
-                    type="button"
-                    onClick={() => setFiles((prev) => prev.filter((_, i) => i !== idx))}
-                    className="text-xs text-red-600 hover:underline"
-                  >
-                    {t("form.delete")}
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </FormSection>
-
-        {/* Action Buttons */}
-        <div className="flex gap-3 pt-6">
-          <Button
-            type="submit"
-            className="flex-1"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? t("action.saving") : t("form.save")}
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => router.back()}
-          >
+        {/* Form Actions */}
+        <div className="flex gap-3 bg-muted/50 p-4 rounded-lg sticky bottom-0">
+          <Button type="button" variant="outline" onClick={() => router.back()}>
             {t("form.cancel")}
+          </Button>
+          <Button type="submit" disabled={isSubmitting}>
+            <Save className="h-4 w-4 mr-2" />
+            {isSubmitting ? t("form.saving") : t("form.save")}
           </Button>
         </div>
       </form>

@@ -1,61 +1,85 @@
 "use client"
 
-import { useState, useCallback, useMemo } from "react"
+import type React from "react"
+import { useState, useCallback, useEffect, useMemo } from "react"
+import { use } from "react"
 import { useRouter } from "next/navigation"
-import { FormHeader, FormSection, FormField, DistributionSelector } from "@/components/forms"
-
-export const dynamic = 'force-dynamic'
-export const dynamicParams = true
-
+import { toast } from "sonner"
+import { AppShell } from "@/components/app-shell"
+import { FormHeader } from "@/components/forms/form-header"
+import { FormSection } from "@/components/forms/form-section"
+import { FormField } from "@/components/forms/form-field"
+import { AttachmentUpload } from "@/components/forms/attachment-upload"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent } from "@/components/ui/card"
-import { Checkbox } from "@/components/ui/checkbox"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Progress } from "@/components/ui/progress"
+import { Badge } from "@/components/ui/badge"
 import { Label } from "@/components/ui/label"
+import { Progress } from "@/components/ui/progress"
 import { Switch } from "@/components/ui/switch"
-import { useAppStore, inspectionSections } from "@/lib/store"
-import { Check, X, AlertCircle, Mail } from "lucide-react"
-import type { Inspection, InspectionItemResponse } from "@/lib/types"
+import { AlertCircle, Check, X, Mail, Save } from "lucide-react"
 import { useLocale } from "@/lib/locale-context"
+import { useAppStore, inspectionSections } from "@/lib/store"
+import type { Inspection, InspectionItemResponse, Attachment } from "@/lib/types"
+import { DistributionSelector } from "@/components/forms"
 
-export default function NewInspection() {
+export default function EditInspectionPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params)
   const router = useRouter()
-  const store = useAppStore()
-  const { addInspection, projects = [], currentUser, authUsers = [], userGroups = [] } = store || {}
   const { t } = useLocale()
+  const store = useAppStore()
+  const { projects = [], currentUser, updateInspection, inspections, authUsers = [], userGroups = [] } = store || {}
+  
+  const inspection = inspections?.find((i) => i.id === id)
+
+  // Form state
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [errors, setErrors] = useState<Record<string, string>>({})
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([])
   const [selectedGroupIds, setSelectedGroupIds] = useState<string[]>([])
   const [sendNotifications, setSendNotifications] = useState(true)
 
-  const [formData, setFormData] = useState({
-    documentTitle: "",
-    type: "",
-    projectId: projects[0]?.id || "",
-    description: "",
-    responses: {} as Record<string, InspectionItemResponse>,
-  })
+  // Form data
+  const [formData, setFormData] = useState<{
+    documentTitle: string
+    type: string
+    projectId: string
+    description: string
+    responses: Record<string, InspectionItemResponse>
+    attachments: Attachment[]
+  }>(() => ({
+    documentTitle: inspection?.documentTitle || "",
+    type: inspection?.type || "",
+    projectId: inspection?.projectId || (projects && Array.isArray(projects) && projects.length > 0 ? projects[0]?.id : ""),
+    description: inspection?.description || "",
+    responses: inspection?.responses?.reduce((acc, resp) => {
+      acc[resp.itemId] = resp
+      return acc
+    }, {} as Record<string, InspectionItemResponse>) || {},
+    attachments: inspection?.attachments || [],
+  }))
 
-  // Calculate completion percentage
+  // Validation state
+  const [errors, setErrors] = useState<Record<string, string>>({})
+
   const completionPercentage = useMemo(() => {
     const allItems = (inspectionSections || []).flatMap((s) => s?.items || [])
-    const answered = Object.values(formData.responses).filter((r) => r.response !== null).length
-    return allItems.length > 0 ? Math.round((answered / allItems.length) * 100) : 0
+    if (allItems.length === 0) return 0
+    const answered = Object.values(formData.responses).filter((r) => r?.response !== null).length
+    return Math.round((answered / allItems.length) * 100)
   }, [formData.responses])
+
   const validateForm = useCallback(() => {
     const newErrors: Record<string, string> = {}
-
     if (!formData.documentTitle.trim()) newErrors.documentTitle = t("error.titleRequired")
     if (!formData.type) newErrors.type = t("error.inspectionTypeRequired")
     if (!formData.projectId) newErrors.projectId = t("error.projectRequired")
-    if (completionPercentage < 50)
-      newErrors.completion = t("error.minimumCompletion")
+    if (completionPercentage < 50) newErrors.completion = t("error.minimumCompletion")
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
-  }, [formData, completionPercentage])
+  }, [formData, completionPercentage, t])
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
@@ -99,33 +123,38 @@ export default function NewInspection() {
           }
         })
 
-        const inspection: Inspection = {
-          id: crypto.randomUUID(),
+        const updatedInspection: Inspection = {
+          ...inspection!,
           documentTitle: formData.documentTitle,
           type: formData.type,
           projectId: formData.projectId,
           description: formData.description,
-          creatorId: currentUser?.id || "unknown",
           distribution: distributionList,
-          closedById: null,
-          status: "in-progress",
           responses: responsesArray,
-          createdAt: new Date(),
+          attachments: formData.attachments,
           updatedAt: new Date(),
           syncStatus: "pending",
         }
 
-        addInspection(inspection)
-        alert(t("alert.saveSuccess.inspection"))
-        router.push("/inspections")
+        updateInspection(id, updatedInspection)
+
+        if (sendNotifications && distributionList.length > 0) {
+          console.log("📧 Email notifications would be sent to:")
+          distributionList.forEach(({ email }) => {
+            if (email) console.log(`   → ${email}`)
+          })
+        }
+
+        toast.success(t("alert.saveSuccess.inspection"))
+        router.push(`/inspections/${id}`)
       } catch (error) {
-        console.error("Error saving inspection:", error)
+        console.error("Error updating inspection:", error)
         alert(t("alert.saveError.inspection"))
       } finally {
         setIsSubmitting(false)
       }
     },
-    [formData, validateForm, addInspection, currentUser, router, selectedUserIds, selectedGroupIds, authUsers, userGroups],
+    [formData, validateForm, updateInspection, id, selectedUserIds, selectedGroupIds, authUsers, userGroups, inspection, sendNotifications, router, t],
   )
 
   const handleItemResponse = (
@@ -177,12 +206,17 @@ export default function NewInspection() {
 
   const stats = getResponseStats()
 
+  if (!inspection) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-muted-foreground">{t("empty.notFound.inspection")}</p>
+      </div>
+    )
+  }
+
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
-      <FormHeader
-        title={t("inspection.title")}
-        description={t("inspection.instruction")}
-      />
+    <div className="max-w-5xl mx-auto space-y-6 p-4 md:p-6 lg:p-8">
+      <FormHeader title={t("form.edit")} backHref={`/inspections/${id}`} />
 
       {/* Progress Card */}
       <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 border-blue-200">
@@ -225,58 +259,62 @@ export default function NewInspection() {
             name="documentTitle"
             placeholder={t("inspection.titlePlaceholder")}
             value={formData.documentTitle}
-            onChange={(e) => setFormData((prev) => ({ ...prev, documentTitle: e.target.value }))}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              setFormData((prev) => ({ ...prev, documentTitle: e.target.value }))
+            }
             error={errors.documentTitle}
             required
-          />
+          >
+            <Input
+              value={formData.documentTitle}
+              onChange={(e) => setFormData((prev) => ({ ...prev, documentTitle: e.target.value }))}
+              placeholder={t("inspection.titlePlaceholder")}
+            />
+          </FormField>
 
           <div className="grid grid-cols-2 gap-4">
             <FormField
               label={t("inspection.typeLabel")}
               name="type"
-              as="select"
-              value={formData.type}
-              onChange={(e) => setFormData((prev) => ({ ...prev, type: e.target.value }))}
               error={errors.type}
               required
             >
-              <option value="">{t("inspection.selectType")}</option>
-              <option value="safety">{t("inspection.type.safety")}</option>
-              <option value="compliance">{t("inspection.type.compliance")}</option>
-              <option value="incident-follow-up">{t("inspection.type.incidentFollowUp")}</option>
-              <option value="routine">{t("inspection.type.routine")}</option>
+              <Select value={formData.type} onValueChange={(value) => setFormData((prev) => ({ ...prev, type: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder={t("inspection.selectType")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="safety">{t("inspection.type.safety")}</SelectItem>
+                  <SelectItem value="compliance">{t("inspection.type.compliance")}</SelectItem>
+                  <SelectItem value="incident-follow-up">{t("inspection.type.incidentFollowUp")}</SelectItem>
+                  <SelectItem value="routine">{t("inspection.type.routine")}</SelectItem>
+                </SelectContent>
+              </Select>
             </FormField>
 
             <FormField
               label={t("form.project")}
               name="projectId"
-              as="select"
-              value={formData.projectId}
-              onChange={(e) => setFormData((prev) => ({ ...prev, projectId: e.target.value }))}
               error={errors.projectId}
               required
             >
-              <option value="">{t("inspection.projectSelect")}</option>
-              {projects?.map((project) => (
-                <option key={project.id} value={project.id}>
-                  {project.name}
-                </option>
-              ))}
+              <Select value={formData.projectId} onValueChange={(value) => setFormData((prev) => ({ ...prev, projectId: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder={t("inspection.projectSelect")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {projects?.map((project) => (
+                    <SelectItem key={project.id} value={project.id}>
+                      {project.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </FormField>
           </div>
 
-          <FormField
-            label={t("inspection.descriptionNotes")}
-            name="description"
-            as="textarea"
-            placeholder={t("form.description")}
-            value={formData.description}
-            onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
-            rows={3}
-          />
-
           {errors.completion && (
-            <Alert variant="destructive">
+            <Alert className="border-yellow-200 bg-yellow-50 dark:border-yellow-900 dark:bg-yellow-950">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>{errors.completion}</AlertDescription>
             </Alert>
@@ -358,16 +396,14 @@ export default function NewInspection() {
                           </div>
                         </div>
 
-                        {/* Comment field for non-conforming items */}
-                        {formData.responses[item.id]?.response === "non-conforming" && (
-                          <textarea
-                            placeholder={t("inspection.commentPlaceholder")}
-                            value={formData.responses[item.id]?.comment || ""}
-                            onChange={(e) => handleItemComment(item.id, e.target.value)}
-                            className="w-full text-sm p-2 border rounded bg-red-50 dark:bg-red-950 border-red-200"
-                            rows={2}
-                          />
-                        )}
+                        {/* Comment field */}
+                        <Input
+                          type="text"
+                          placeholder={t("inspection.addComment")}
+                          value={formData.responses[item.id]?.comment || ""}
+                          onChange={(e) => handleItemComment(item.id, e.target.value)}
+                          className="text-sm"
+                        />
                       </div>
                     </CardContent>
                   </Card>
@@ -376,6 +412,15 @@ export default function NewInspection() {
             </FormSection>
           )
         })}
+
+        {/* Attachments */}
+        <FormSection title={t("field.attachments")} defaultOpen>
+          <AttachmentUpload
+            attachments={formData.attachments}
+            onAttachmentsChange={(attachments) => setFormData((prev) => ({ ...prev, attachments }))}
+            readOnly={false}
+          />
+        </FormSection>
 
         {/* Distribution / Assignment */}
         <FormSection title={t("form.distribution")} defaultOpen>
@@ -414,6 +459,7 @@ export default function NewInspection() {
             className="flex-1"
             disabled={isSubmitting || completionPercentage < 50}
           >
+            <Save className="h-4 w-4 mr-2" />
             {isSubmitting ? t("action.saving") : t("action.saveInspection", { percent: completionPercentage })}
           </Button>
         </div>

@@ -1,6 +1,6 @@
 "use client"
 
-import { ArrowLeft, FileDown, Save } from "lucide-react"
+import { ArrowLeft, FileDown, Save, Edit } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useLocale } from "@/lib/locale-context"
 import Link from "next/link"
@@ -10,10 +10,11 @@ interface FormHeaderProps {
   backHref?: string
   onSaveDraft?: () => void
   onExportPdf?: () => void
+  onEdit?: () => void
   isSaving?: boolean
 }
 
-export function FormHeader({ title, backHref, onSaveDraft, onExportPdf, isSaving }: FormHeaderProps) {
+export function FormHeader({ title, backHref, onSaveDraft, onExportPdf, onEdit, isSaving }: FormHeaderProps) {
   const { t } = useLocale()
   const resolvedBackHref = backHref ?? "/"
 
@@ -30,6 +31,12 @@ export function FormHeader({ title, backHref, onSaveDraft, onExportPdf, isSaving
           <h1 className="text-lg font-semibold truncate">{title}</h1>
         </div>
         <div className="flex items-center gap-2">
+          {onEdit && (
+            <Button variant="outline" size="sm" onClick={onEdit} className="hidden sm:flex bg-transparent">
+              <Edit className="h-4 w-4 mr-2" />
+              {t("form.edit")}
+            </Button>
+          )}
           {onExportPdf && (
             <Button variant="outline" size="sm" onClick={onExportPdf} className="hidden sm:flex bg-transparent">
               <FileDown className="h-4 w-4 mr-2" />
