@@ -452,26 +452,22 @@ export default function NewObservation() {
         {/* Attachments */}
         <FormSection title={t("form.attachments")}>
           <AttachmentUpload 
-            attachments={[]}
-            onChange={() => {}}
+            attachments={files.map((file) => ({
+              id: crypto.randomUUID(),
+              name: file.name,
+              type: file.type,
+              size: file.size,
+              url: URL.createObjectURL(file),
+              uploadedAt: new Date(),
+            }))}
+            onChange={(attachments) => {
+              const newFiles = attachments.map((att) => {
+                return new File([], att.name, { type: att.type });
+              });
+              setFiles(newFiles);
+            }}
+            readOnly={false}
           />
-          {files.length > 0 && (
-            <div className="mt-4 space-y-2">
-              <h4 className="font-medium text-sm">{t("form.attachments")}</h4>
-              {files.map((file, idx) => (
-                <div key={idx} className="flex items-center justify-between p-2 bg-muted rounded">
-                  <span className="text-sm">{file.name}</span>
-                  <button
-                    type="button"
-                    onClick={() => setFiles((prev) => prev.filter((_, i) => i !== idx))}
-                    className="text-xs text-red-600 hover:underline"
-                  >
-                    {t("form.delete")}
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
         </FormSection>
 
         {/* Action Buttons */}

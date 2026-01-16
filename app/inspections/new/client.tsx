@@ -259,7 +259,7 @@ export default function NewInspection() {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Basic Information */}
-        <FormSection title={t("inspection.info")} defaultOpen>
+        <FormSection title="Inspection Information" defaultOpen>
           <FormField
             label={t("inspection.titleLabel")}
             name="documentTitle"
