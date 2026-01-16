@@ -1,8 +1,9 @@
-"use client"
+﻿"use client"
 
 import { useState } from "react"
 import Link from "next/link"
 import { useAppStore } from "@/lib/store"
+import jsPDF from "jspdf"
 
 export const dynamic = 'force-dynamic'
 import { useLocale } from "@/lib/locale-context"
@@ -46,34 +47,65 @@ export default function ObservationsPage() {
 
   const handleExportPDF = (observation: (typeof observations)[0]) => {
     try {
-      const content = `
-OBSERVATION REPORT
-==================
-Title: ${observation.title}
-Number: ${observation.number}
-Type: ${observation.type}
-Location: ${observation.location}
-Priority: ${observation.priority}
-Status: ${observation.status}
-Created: ${new Date(observation.createdAt).toLocaleDateString()}
+      const doc = new jsPDF()
+      let yPosition = 20
 
-Description:
-${observation.description}
+      // Title
+      doc.setFontSize(18)
+      doc.text("OBSERVATION REPORT", 20, yPosition)
+      yPosition += 12
 
-Assigned To: ${observation.assignedTo || "Not assigned"}
-Deadline: ${observation.deadline || "No deadline"}
-      `.trim()
+      // HR line
+      doc.setDrawColor(0)
+      doc.line(20, yPosition - 2, 190, yPosition - 2)
+      yPosition += 8
 
-      const element = document.createElement("a")
-      element.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(content))
-      element.setAttribute("download", `observation-${observation.number}.txt`)
-      element.style.display = "none"
-      document.body.appendChild(element)
-      element.click()
-      document.body.removeChild(element)
-      toast.success("Observation exported successfully")
+      // Header info
+      doc.setFontSize(11)
+      doc.text(`Title: ${observation.title}`, 20, yPosition)
+      yPosition += 6
+      doc.text(`Number: ${observation.number}`, 20, yPosition)
+      yPosition += 6
+      doc.text(`Type: ${observation.type}`, 20, yPosition)
+      yPosition += 6
+      doc.text(`Location: ${observation.location}`, 20, yPosition)
+      yPosition += 6
+      doc.text(`Priority: ${observation.priority}`, 20, yPosition)
+      yPosition += 6
+      doc.text(`Status: ${observation.status}`, 20, yPosition)
+      yPosition += 6
+      doc.text(`Created: ${new Date(observation.createdAt).toLocaleDateString()}`, 20, yPosition)
+      yPosition += 10
+
+      // Description
+      doc.setFontSize(12)
+      doc.setFont(undefined, "bold")
+      doc.text("Description:", 20, yPosition)
+      yPosition += 6
+      doc.setFont(undefined, "normal")
+      doc.setFontSize(10)
+      const descLines = doc.splitTextToSize(observation.description, 170)
+      doc.text(descLines, 20, yPosition)
+      yPosition += descLines.length * 5 + 10
+
+      // Assignment info
+      doc.setFontSize(12)
+      doc.setFont(undefined, "bold")
+      doc.text("Assignment Details:", 20, yPosition)
+      yPosition += 6
+      doc.setFont(undefined, "normal")
+      doc.setFontSize(10)
+      
+      doc.text(`Assigned To: ${observation.assignedTo || "Not assigned"}`, 20, yPosition)
+      yPosition += 5
+      doc.text(`Deadline: ${observation.deadline || "No deadline"}`, 20, yPosition)
+      yPosition += 10
+
+      doc.save(`observation-${observation.number}.pdf`)
+      toast.success("Observation exported as PDF successfully")
     } catch (error) {
-      toast.error("Failed to export observation")
+      console.error("PDF export error:", error)
+      toast.error("Failed to export observation as PDF")
     }
   }
 
@@ -211,7 +243,7 @@ Deadline: ${observation.deadline || "No deadline"}
                           size="sm"
                           onClick={() => handleExportPDF(observation)}
                           className="gap-2"
-                          title="Export as file"
+                          title="Export as PDF"
                         >
                           <Download className="h-4 w-4" />
                         </Button>

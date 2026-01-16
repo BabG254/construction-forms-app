@@ -1,8 +1,9 @@
-"use client"
+﻿"use client"
 
 import { useState } from "react"
 import Link from "next/link"
 import { useAppStore } from "@/lib/store"
+import jsPDF from "jspdf"
 
 export const dynamic = 'force-dynamic'
 import { useLocale } from "@/lib/locale-context"
@@ -28,50 +29,102 @@ export default function InspectionsPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [filterStatus, setFilterStatus] = useState<string | null>(null)
 
-  const filtered = inspections.filter((insp) => {
+  const filtered = inspections.filter((inspection) => {
     const matchesSearch =
-      insp.documentTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      insp.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      insp.id.toLowerCase().includes(searchTerm.toLowerCase())
+      inspection.documentTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      inspection.documentDescription?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      inspection.id.toLowerCase().includes(searchTerm.toLowerCase())
 
-    const matchesStatus = !filterStatus || insp.status === filterStatus
+    const matchesStatus = !filterStatus || inspection.status === filterStatus
 
     return matchesSearch && matchesStatus
   })
 
-  const getCompletionPercentage = (inspection: (typeof inspections)[0]): number => {
+  const getCompletionPercentage = (inspection: (typeof inspections)[0]) => {
     if (inspection.responses.length === 0) return 0
-    const answered = inspection.responses.filter((r) => r.response !== null).length
-    return Math.round((answered / inspection.responses.length) * 100)
+    const completed = inspection.responses.filter((r) => r.response).length
+    return Math.round((completed / inspection.responses.length) * 100)
   }
 
   const handleExportPDF = (inspection: (typeof inspections)[0]) => {
     try {
-      const content = `
-INSPECTION REPORT
-================
-Title: ${inspection.documentTitle}
-ID: ${inspection.id}
-Status: ${inspection.status}
-Created: ${new Date(inspection.createdAt).toLocaleDateString()}
+      const doc = new jsPDF()
+      let yPosition = 20
 
-Description:
-${inspection.description}
+      // Title
+      doc.setFontSize(18)
+      doc.text("INSPECTION REPORT", 20, yPosition)
+      yPosition += 12
 
-Responses:
-${inspection.responses.map((r) => `- ${r.question}: ${r.response || "Not answered"}`).join("\n")}
-      `.trim()
+      // HR line
+      doc.setDrawColor(0)
+      doc.line(20, yPosition - 2, 190, yPosition - 2)
+      yPosition += 8
 
-      const element = document.createElement("a")
-      element.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(content))
-      element.setAttribute("download", `inspection-${inspection.id}.txt`)
-      element.style.display = "none"
-      document.body.appendChild(element)
-      element.click()
-      document.body.removeChild(element)
-      toast.success("Inspection exported successfully")
+      // Inspection details
+      doc.setFontSize(11)
+      doc.text(`Title: ${inspection.documentTitle}`, 20, yPosition)
+      yPosition += 6
+      doc.text(`ID: ${inspection.id}`, 20, yPosition)
+      yPosition += 6
+      doc.text(`Status: ${inspection.status}`, 20, yPosition)
+      yPosition += 6
+      doc.text(`Created: ${new Date(inspection.createdAt).toLocaleDateString()}`, 20, yPosition)
+      yPosition += 10
+
+      // Description
+      if (inspection.documentDescription) {
+        doc.setFontSize(12)
+        doc.setFont(undefined, "bold")
+        doc.text("Description:", 20, yPosition)
+        yPosition += 6
+        doc.setFont(undefined, "normal")
+        doc.setFontSize(10)
+        const descLines = doc.splitTextToSize(inspection.documentDescription, 170)
+        doc.text(descLines, 20, yPosition)
+        yPosition += descLines.length * 5 + 10
+      }
+
+      // Completion percentage
+      const completionPercentage = getCompletionPercentage(inspection)
+      doc.setFontSize(11)
+      doc.setFont(undefined, "bold")
+      doc.text(`Completion: ${completionPercentage}%`, 20, yPosition)
+      yPosition += 10
+
+      // Responses
+      doc.setFontSize(11)
+      doc.setFont(undefined, "bold")
+      doc.text("Inspection Responses:", 20, yPosition)
+      yPosition += 8
+      doc.setFont(undefined, "normal")
+      doc.setFontSize(10)
+
+      inspection.responses.forEach((response, index) => {
+        if (yPosition > 270) {
+          doc.addPage()
+          yPosition = 20
+        }
+
+        doc.setFont(undefined, "bold")
+        doc.text(`${index + 1}. ${response.itemDescription}`, 20, yPosition)
+        yPosition += 6
+        doc.setFont(undefined, "normal")
+        doc.text(`Response: ${response.response || "Not answered"}`, 25, yPosition)
+        yPosition += 5
+        if (response.notes) {
+          const notesLines = doc.splitTextToSize(`Notes: ${response.notes}`, 165)
+          doc.text(notesLines, 25, yPosition)
+          yPosition += notesLines.length * 5
+        }
+        yPosition += 3
+      })
+
+      doc.save(`inspection-${inspection.id}.pdf`)
+      toast.success("Inspection exported as PDF successfully")
     } catch (error) {
-      toast.error("Failed to export inspection")
+      console.error("PDF export error:", error)
+      toast.error("Failed to export inspection as PDF")
     }
   }
 
@@ -84,8 +137,8 @@ ${inspection.responses.map((r) => `- ${r.question}: ${r.response || "Not answere
             <div>
               <h1 className="text-3xl font-bold">{t("nav.inspections")}</h1>
               <p className="text-muted-foreground mt-2">
-                {t("list.countOf", { 
-                  filtered: filtered.length, 
+                {t("list.countOf", {
+                  filtered: filtered.length,
                   total: inspections.length,
                   type: inspections.length !== 1 ? t("list.inspections") : t("list.inspection")
                 })}
@@ -220,7 +273,7 @@ ${inspection.responses.map((r) => `- ${r.question}: ${r.response || "Not answere
                           size="sm"
                           onClick={() => handleExportPDF(inspection)}
                           className="gap-2"
-                          title="Export as file"
+                          title="Export as PDF"
                         >
                           <Download className="h-4 w-4" />
                         </Button>

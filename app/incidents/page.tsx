@@ -1,33 +1,31 @@
-"use client"
+﻿"use client"
 
-import { Suspense, useState } from "react"
-import { Plus, AlertTriangle, Search, Download, Trash2, Edit2 } from "lucide-react"
+import { useState } from "react"
+import Link from "next/link"
+import { useAppStore } from "@/lib/store"
+import jsPDF from "jspdf"
+import { format } from "date-fns"
 
 export const dynamic = 'force-dynamic'
-
-import Link from "next/link"
-import { AppShell } from "@/components/app-shell"
+import { useLocale } from "@/lib/locale-context"
+import { AlertTriangle, Plus, Edit2, Trash2, Search, Download } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { useLocale } from "@/lib/locale-context"
-import { useAppStore } from "@/lib/store"
-import { formatDistanceToNow, format } from "date-fns"
+import { Card, CardContent } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 
-const statusVariants = {
+const statusVariants: Record<string, string> = {
   draft: "bg-blue-100 text-blue-800 dark:bg-blue-900",
-  submitted: "bg-primary/10 text-primary",
   open: "bg-red-100 text-red-800 dark:bg-red-900",
-  closed: "bg-green-100 text-green-800 dark:bg-green-900",
   "in-progress": "bg-yellow-100 text-yellow-800 dark:bg-yellow-900",
+  closed: "bg-green-100 text-green-800 dark:bg-green-900",
 }
 
-function IncidentsContent() {
+export default function IncidentsPage() {
+  const { incidents, deleteIncident, projects } = useAppStore()
   const { t } = useLocale()
-  const { incidents, projects, deleteIncident } = useAppStore()
   const [searchTerm, setSearchTerm] = useState("")
   const [filterStatus, setFilterStatus] = useState<string | null>(null)
 
@@ -44,40 +42,85 @@ function IncidentsContent() {
 
   const handleExportPDF = (incident: (typeof incidents)[0]) => {
     try {
-      const content = `
-INCIDENT REPORT
-===============
-Title: ${incident.title}
-Number: ${incident.number}
-Type: ${incident.accidentType}
-Status: ${incident.status}
-Event Date: ${format(new Date(incident.eventDate), "MMM d, yyyy")}
-Created: ${new Date(incident.createdAt).toLocaleDateString()}
+      const doc = new jsPDF()
+      let yPosition = 20
 
-Description:
-${incident.description}
+      // Title
+      doc.setFontSize(18)
+      doc.text("INCIDENT REPORT", 20, yPosition)
+      yPosition += 12
 
-Injuries: ${incident.injuriesCount || "None reported"}
-Environmental Impact: ${incident.environmentalImpact ? "Yes" : "No"}
-Property Damage: ${incident.propertyDamage ? "Yes" : "No"}
+      // HR line
+      doc.setDrawColor(0)
+      doc.line(20, yPosition - 2, 190, yPosition - 2)
+      yPosition += 8
 
-Root Cause:
-${incident.rootCause || "Not specified"}
+      // Incident details
+      doc.setFontSize(11)
+      doc.text(`Title: ${incident.title}`, 20, yPosition)
+      yPosition += 6
+      doc.text(`Number: ${incident.number}`, 20, yPosition)
+      yPosition += 6
+      doc.text(`Type: ${incident.accidentType}`, 20, yPosition)
+      yPosition += 6
+      doc.text(`Status: ${incident.status}`, 20, yPosition)
+      yPosition += 6
+      doc.text(`Event Date: ${format(new Date(incident.eventDate), "MMM d, yyyy")}`, 20, yPosition)
+      yPosition += 6
+      doc.text(`Created: ${format(new Date(incident.createdAt), "MMM d, yyyy")}`, 20, yPosition)
+      yPosition += 10
 
-Corrective Actions:
-${incident.correctiveActions || "Not specified"}
-      `.trim()
+      // Description
+      doc.setFontSize(12)
+      doc.setFont(undefined, "bold")
+      doc.text("Description:", 20, yPosition)
+      yPosition += 6
+      doc.setFont(undefined, "normal")
+      doc.setFontSize(10)
+      const descLines = doc.splitTextToSize(incident.description, 170)
+      doc.text(descLines, 20, yPosition)
+      yPosition += descLines.length * 5 + 10
 
-      const element = document.createElement("a")
-      element.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(content))
-      element.setAttribute("download", `incident-${incident.number}.txt`)
-      element.style.display = "none"
-      document.body.appendChild(element)
-      element.click()
-      document.body.removeChild(element)
-      toast.success("Incident exported successfully")
+      // Impact details
+      doc.setFontSize(11)
+      doc.setFont(undefined, "bold")
+      doc.text("Impact Details:", 20, yPosition)
+      yPosition += 6
+      doc.setFont(undefined, "normal")
+      doc.setFontSize(10)
+      doc.text(`Injuries: ${incident.injuriesCount || 0}`, 20, yPosition)
+      yPosition += 5
+      doc.text(`Environmental Impact: ${incident.environmentalImpact || "None"}`, 20, yPosition)
+      yPosition += 5
+      doc.text(`Property Damage: ${incident.propertyDamage || "None"}`, 20, yPosition)
+      yPosition += 10
+
+      // Root cause
+      doc.setFontSize(11)
+      doc.setFont(undefined, "bold")
+      doc.text("Root Cause Analysis:", 20, yPosition)
+      yPosition += 6
+      doc.setFont(undefined, "normal")
+      doc.setFontSize(10)
+      const rootCauseLines = doc.splitTextToSize(incident.rootCause || "Not specified", 170)
+      doc.text(rootCauseLines, 20, yPosition)
+      yPosition += rootCauseLines.length * 5 + 10
+
+      // Corrective actions
+      doc.setFontSize(11)
+      doc.setFont(undefined, "bold")
+      doc.text("Corrective Actions:", 20, yPosition)
+      yPosition += 6
+      doc.setFont(undefined, "normal")
+      doc.setFontSize(10)
+      const actionsLines = doc.splitTextToSize(incident.correctiveActions || "Not specified", 170)
+      doc.text(actionsLines, 20, yPosition)
+
+      doc.save(`incident-${incident.number}.pdf`)
+      toast.success("Incident exported as PDF successfully")
     } catch (error) {
-      toast.error("Failed to export incident")
+      console.error("PDF export error:", error)
+      toast.error("Failed to export incident as PDF")
     }
   }
 
@@ -89,8 +132,8 @@ ${incident.correctiveActions || "Not specified"}
           <div>
             <h1 className="text-3xl font-bold text-foreground">{t("nav.incidents")}</h1>
             <p className="text-muted-foreground mt-2">
-              {t("list.countOf", { 
-                filtered: filtered.length, 
+              {t("list.countOf", {
+                filtered: filtered.length,
                 total: incidents.length,
                 type: incidents.length !== 1 ? t("list.incidents") : t("list.incident")
               })}
@@ -211,7 +254,7 @@ ${incident.correctiveActions || "Not specified"}
                         size="sm"
                         onClick={() => handleExportPDF(incident)}
                         className="gap-2"
-                        title="Export as file"
+                        title="Export as PDF"
                       >
                         <Download className="h-4 w-4" />
                       </Button>
@@ -236,15 +279,5 @@ ${incident.correctiveActions || "Not specified"}
         )}
       </div>
     </div>
-  )
-}
-
-export default function IncidentsPage() {
-  return (
-    <AppShell>
-      <Suspense fallback={null}>
-        <IncidentsContent />
-      </Suspense>
-    </AppShell>
   )
 }
