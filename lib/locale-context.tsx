@@ -406,9 +406,9 @@ const translations = {
   fr: {
     // Navigation
     "nav.dashboard": "Tableau de bord",
-    "nav.inspections": "Inspections",
-    "nav.observations": "Observations",
-    "nav.incidents": "Incidents",
+    "nav.inspections": "Vérifications",
+    "nav.observations": "Remarques",
+    "nav.incidents": "Sinistres",
     "nav.settings": "Paramètres",
 
     // Dashboard

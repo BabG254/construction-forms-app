@@ -44,6 +44,55 @@ export default function UsersPage() {
     }
   }, [canCreateSupervisorOrAdmin, newUserRole])
 
+  const handleAddUser = () => {
+    setFormError("")
+
+    // Validation
+    if (!newUserEmail.trim()) {
+      setFormError(t("emailRequired") || "Email is required")
+      return
+    }
+    if (!newUserName.trim()) {
+      setFormError(t("nameRequired") || "Name is required")
+      return
+    }
+    if (!newUserPassword.trim()) {
+      setFormError(t("passwordRequired") || "Password is required")
+      return
+    }
+
+    // Check if email already exists
+    if (authUsers.some((u) => u.email.toLowerCase() === newUserEmail.toLowerCase())) {
+      setFormError(t("emailAlreadyExists") || "Email already exists")
+      return
+    }
+
+    // Simple hash for demo (NOT production-grade)
+    const simpleHash = (password: string) => {
+      return Buffer.from(password).toString("base64")
+    }
+
+    // Create new user
+    const newUser = {
+      id: `user-${Date.now()}`,
+      email: newUserEmail.toLowerCase(),
+      name: newUserName,
+      passwordHash: simpleHash(newUserPassword),
+      role: newUserRole,
+      createdAt: new Date(),
+    }
+
+    addAuthUser(newUser)
+    toast.success(`User ${newUserName} created successfully`)
+
+    // Reset form
+    setNewUserEmail("")
+    setNewUserName("")
+    setNewUserPassword("")
+    setNewUserRole("worker")
+    setIsOpen(false)
+  }
+
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
       case "admin":
