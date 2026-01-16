@@ -7,13 +7,14 @@ const translations = {
   en: {
     // Navigation
     "nav.dashboard": "Dashboard",
+    "nav.siteForms": "Site Forms",
     "nav.inspections": "Inspections",
     "nav.observations": "Observations",
     "nav.incidents": "Incidents",
     "nav.settings": "Settings",
 
     // Dashboard
-    "dashboard.title": "Construction Forms",
+    "dashboard.title": "Interlag - Soft",
     "dashboard.subtitle": "Manage inspections, observations, and incidents",
     "dashboard.newInspection": "New Inspection",
     "dashboard.newObservation": "New Observation",
@@ -406,13 +407,14 @@ const translations = {
   fr: {
     // Navigation
     "nav.dashboard": "Tableau de bord",
+    "nav.siteForms": "Formulaires de chantier",
     "nav.inspections": "Vérifications",
     "nav.observations": "Remarques",
     "nav.incidents": "Sinistres",
     "nav.settings": "Paramètres",
 
     // Dashboard
-    "dashboard.title": "Formulaires de chantier",
+    "dashboard.title": "Interlag - Soft",
     "dashboard.subtitle": "Gérer les inspections, observations et incidents",
     "dashboard.newInspection": "Nouvelle inspection",
     "dashboard.newObservation": "Nouvelle observation",

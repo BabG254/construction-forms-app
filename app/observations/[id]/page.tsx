@@ -189,10 +189,15 @@ export default function ObservationDetailPage({ params }: { params: Promise<{ id
           <FormSection title={t("form.attachments")}>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {observation.attachments.map((attachment) => (
-                <div key={attachment.id} className="p-3 bg-muted/50 rounded-lg">
+                <button
+                  key={attachment.id}
+                  type="button"
+                  onClick={() => window.open(attachment.url, "_blank")}
+                  className="p-3 bg-muted/50 rounded-lg hover:bg-muted transition-colors cursor-pointer text-left"
+                >
                   <p className="text-sm font-medium truncate">{attachment.name}</p>
                   <p className="text-xs text-muted-foreground">{(attachment.size / 1024).toFixed(1)} KB</p>
-                </div>
+                </button>
               ))}
             </div>
           </FormSection>

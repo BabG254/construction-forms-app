@@ -5,20 +5,27 @@ import type React from "react"
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { ClipboardCheck, Eye, AlertTriangle, LayoutDashboard, Menu, Globe, Settings, Users, UserCircle, LogOut, Shield } from "lucide-react"
+import { ClipboardCheck, Eye, AlertTriangle, LayoutDashboard, Menu, Globe, Settings, Users, UserCircle, LogOut, Shield, ChevronDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuLabel } from "@/components/ui/dropdown-menu"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { useLocale } from "@/lib/locale-context"
 import { useAuth } from "@/lib/auth-context"
 import { OfflineIndicator } from "@/components/offline-indicator"
 
 const navigation = [
   { key: "nav.dashboard", href: "/", icon: LayoutDashboard },
-  { key: "nav.inspections", href: "/inspections", icon: ClipboardCheck },
-  { key: "nav.observations", href: "/observations", icon: Eye },
-  { key: "nav.incidents", href: "/incidents", icon: AlertTriangle },
+  { 
+    key: "nav.siteForms", 
+    icon: ClipboardCheck, 
+    children: [
+      { key: "nav.inspections", href: "/inspections", icon: ClipboardCheck },
+      { key: "nav.observations", href: "/observations", icon: Eye },
+      { key: "nav.incidents", href: "/incidents", icon: AlertTriangle },
+    ]
+  },
   { key: "nav.settings", href: "/settings", icon: Settings },
 ]
 
@@ -44,6 +51,55 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const NavLinks = ({ onClick }: { onClick?: () => void }) => (
     <nav className="flex flex-col gap-1">
       {navigation.map((item) => {
+        // If item has children (dropdown), render a collapsible
+        if ('children' in item && item.children) {
+          const isAnyChildActive = item.children.some(
+            (child) => pathname === child.href || (child.href !== "/" && pathname.startsWith(child.href))
+          )
+          
+          return (
+            <Collapsible key={item.key} defaultOpen={isAnyChildActive}>
+              <CollapsibleTrigger
+                className={cn(
+                  "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors w-full",
+                  "min-h-[48px]",
+                  isAnyChildActive
+                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                )}
+              >
+                <item.icon className="h-5 w-5 shrink-0" />
+                <span className="flex-1 text-left">{t(item.key as any)}</span>
+                <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200" />
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="ml-4 mt-1 flex flex-col gap-1">
+                  {item.children.map((child) => {
+                    const isChildActive = pathname === child.href || (child.href !== "/" && pathname.startsWith(child.href))
+                    return (
+                      <Link
+                        key={child.href}
+                        href={child.href}
+                        onClick={onClick}
+                        className={cn(
+                          "flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium transition-colors",
+                          isChildActive
+                            ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                            : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                        )}
+                      >
+                        <child.icon className="h-4 w-4 shrink-0" />
+                        <span>{t(child.key as any)}</span>
+                      </Link>
+                    )
+                  })}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          )
+        }
+
+        // Regular link (no children)
         const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href))
         return (
           <Link
