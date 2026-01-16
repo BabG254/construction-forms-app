@@ -58,7 +58,7 @@ export default function UsersPage() {
   }
 
   // Allow admins and supervisors to manage users
-  if (!user || (user.role !== "admin" && user.role !== "supervisor")) {
+  if (!user || (user?.role !== "admin" && user?.role !== "supervisor")) {
     return (
       <AppShell>
         <div className="p-4 md:p-6 lg:p-8 max-w-3xl mx-auto">
