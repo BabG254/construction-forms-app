@@ -728,10 +728,9 @@ export default function NewIncidentPage() {
           <div className="flex items-start gap-3">
             <Clock className="h-5 w-5 text-muted-foreground mt-0.5" />
             <div className="flex-1">
-              <p className="font-semibold">Form Status</p>
+              <p className="font-semibold">{t("form.formStatus")}</p>
               <p className="text-sm text-muted-foreground mt-1">
-                This form will be saved locally to IndexedDB. When you submit, it will be marked as pending sync.
-                Once online connectivity is restored, it will automatically sync to the server.
+                {t("form.formStatusDescription")}
               </p>
             </div>
           </div>

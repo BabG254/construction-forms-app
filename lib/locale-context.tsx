@@ -58,6 +58,8 @@ const translations = {
     "form.status": "Status",
     "form.priority": "Priority",
     "form.exportPdf": "Export PDF",
+    "form.formStatus": "Form Status",
+    "form.formStatusDescription": "This form will be saved locally to IndexedDB. When you submit, it will be marked as pending sync. Once online connectivity is restored, it will automatically sync to the server.",
     "section.details": "Details",
 
     // Generic
@@ -458,6 +460,8 @@ const translations = {
     "form.status": "Statut",
     "form.priority": "Priorité",
     "form.exportPdf": "Exporter PDF",
+    "form.formStatus": "Statut du formulaire",
+    "form.formStatusDescription": "Ce formulaire sera enregistré localement dans IndexedDB. Lorsque vous le soumettez, il sera marqué comme étant en attente de synchronisation. Une fois la connectivité en ligne restaurée, il se synchronisera automatiquement avec le serveur.",
     "section.details": "Détails",
 
     // Generic

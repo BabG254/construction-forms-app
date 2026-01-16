@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
+import { AppShell } from "@/components/app-shell"
 import { toast } from "sonner"
 
 const statusVariants: Record<string, string> = {
@@ -125,7 +126,8 @@ export default function IncidentsPage() {
   }
 
   return (
-    <div className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
+    <AppShell>
+      <div className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
       <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -279,5 +281,6 @@ export default function IncidentsPage() {
         )}
       </div>
     </div>
+    </AppShell>
   )
 }
