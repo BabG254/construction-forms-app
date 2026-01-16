@@ -259,7 +259,15 @@ export const useAppStore = create<AppState>()(
       isSyncing: false,
 
       // Auth actions
-      addAuthUser: (user) => set((state) => ({ authUsers: [...state.authUsers, user] })),
+      addAuthUser: (user) => set((state) => {
+        // Prevent duplicate emails
+        const emailExists = state.authUsers.some((u) => u.email.toLowerCase() === user.email.toLowerCase())
+        if (emailExists) {
+          console.warn(`User with email ${user.email} already exists`)
+          return state
+        }
+        return { authUsers: [...state.authUsers, user] }
+      }),
       updateAuthUser: (id, updates) =>
         set((state) => ({
           authUsers: state.authUsers.map((u) => (u.id === id ? { ...u, ...updates } : u)),

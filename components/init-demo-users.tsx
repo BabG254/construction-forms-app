@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import { useAppStore } from "@/lib/store"
 
 /**
@@ -10,10 +10,16 @@ import { useAppStore } from "@/lib/store"
 export function InitDemoUsers() {
   const authUsers = useAppStore((state) => state.authUsers)
   const addAuthUser = useAppStore((state) => state.addAuthUser)
+  const initialized = useRef(false)
 
   useEffect(() => {
+    // Prevent double initialization in development (React StrictMode)
+    if (initialized.current) return
+    
     // Only initialize if no users exist
     if (authUsers.length === 0) {
+      initialized.current = true
+      
       // Simple hash function for demo purposes (NOT production-grade)
       const simpleHash = (password: string) => {
         return Buffer.from(password).toString("base64")
@@ -52,7 +58,7 @@ export function InitDemoUsers() {
         addAuthUser(user)
       })
     }
-  }, [authUsers.length, addAuthUser])
+  }, []) // Remove dependencies to only run once
 
   return null
 }
