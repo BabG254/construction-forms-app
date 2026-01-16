@@ -62,9 +62,9 @@ export function AttachmentUpload({ attachments, onChange, maxFiles = 10 }: Attac
         className="hidden"
       />
 
-      {attachments.length > 0 && (
+      {(attachments || []).length > 0 && (
         <div className="space-y-2">
-          {attachments.map((attachment) => {
+          {(attachments || []).map((attachment) => {
             const Icon = getFileIcon(attachment.type)
             return (
               <div

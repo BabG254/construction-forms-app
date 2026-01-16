@@ -17,9 +17,9 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const pathname = usePathname()
-  const { currentAuthUserId, authUsers, setCurrentAuthUserId } = useAppStore()
+  const { currentAuthUserId, authUsers = [], setCurrentAuthUserId } = useAppStore()
   
-  const currentUser = authUsers.find((u) => u.id === currentAuthUserId) || null
+  const currentUser = authUsers?.find((u) => u.id === currentAuthUserId) || null
   const isAuthenticated = !!currentUser
 
   useEffect(() => {
