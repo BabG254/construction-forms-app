@@ -4,13 +4,14 @@ import type React from "react"
 
 import { useState } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { ClipboardCheck, Eye, AlertTriangle, LayoutDashboard, Menu, Globe, Settings } from "lucide-react"
+import { usePathname, useRouter } from "next/navigation"
+import { ClipboardCheck, Eye, AlertTriangle, LayoutDashboard, Menu, Globe, Settings, Users, UserCircle, LogOut, Shield } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuLabel } from "@/components/ui/dropdown-menu"
 import { useLocale } from "@/lib/locale-context"
+import { useAuth } from "@/lib/auth-context"
 import { OfflineIndicator } from "@/components/offline-indicator"
 
 const navigation = [
@@ -23,8 +24,22 @@ const navigation = [
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const router = useRouter()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const { locale, setLocale, t } = useLocale()
+  const { user, logout } = useAuth()
+
+  const handleLogout = () => {
+    logout()
+    router.push("/login")
+  }
+
+  const adminNavigation = user?.role === "admin"
+    ? [
+        { key: "userManagement", href: "/admin/users", icon: UserCircle, label: t("userManagement") },
+        { key: "groupManagement", href: "/admin/groups", icon: Users, label: t("groupManagement") },
+      ]
+    : []
 
   const NavLinks = ({ onClick }: { onClick?: () => void }) => (
     <nav className="flex flex-col gap-1">
@@ -48,6 +63,36 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </Link>
         )
       })}
+      {adminNavigation.length > 0 && (
+        <>
+          <div className="px-4 py-2 mt-2">
+            <div className="flex items-center gap-2 text-xs font-semibold text-sidebar-foreground/50 uppercase tracking-wider">
+              <Shield className="h-3 w-3" />
+              <span>{t("admin")}</span>
+            </div>
+          </div>
+          {adminNavigation.map((item) => {
+            const isActive = pathname === item.href
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={onClick}
+                className={cn(
+                  "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors",
+                  "min-h-[48px]",
+                  isActive
+                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground",
+                )}
+              >
+                <item.icon className="h-5 w-5 shrink-0" />
+                <span>{item.label}</span>
+              </Link>
+            )
+          })}
+        </>
+      )}
     </nav>
   )
 
@@ -64,7 +109,26 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
         <div className="border-t border-sidebar-border p-4 space-y-3">
           <OfflineIndicator variant="full" className="bg-sidebar-accent/30" />
-          <div className="flex items-center justify-end">
+          <div className="flex items-center justify-between gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-8 flex-1 justify-start text-sidebar-foreground">
+                  <UserCircle className="h-4 w-4 mr-2" />
+                  <span className="truncate text-xs">{user?.name}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                <DropdownMenuLabel>{user?.name}</DropdownMenuLabel>
+                <DropdownMenuItem disabled className="text-xs">
+                  {user?.email}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout}>
+                  <LogOut className="h-4 w-4 mr-2" />
+                  {t("logout")}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="h-8 px-2 text-sidebar-foreground">
@@ -100,7 +164,26 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
             <div className="absolute bottom-0 left-0 right-0 border-t border-sidebar-border p-4 space-y-3">
               <OfflineIndicator variant="full" className="bg-sidebar-accent/30" />
-              <div className="flex items-center justify-end">
+              <div className="flex items-center justify-between gap-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-8 flex-1 justify-start text-sidebar-foreground">
+                      <UserCircle className="h-4 w-4 mr-2" />
+                      <span className="truncate text-xs">{user?.name}</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start">
+                    <DropdownMenuLabel>{user?.name}</DropdownMenuLabel>
+                    <DropdownMenuItem disabled className="text-xs">
+                      {user?.email}
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout}>
+                      <LogOut className="h-4 w-4 mr-2" />
+                      {t("logout")}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="sm" className="h-8 px-2 text-sidebar-foreground">

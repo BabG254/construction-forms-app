@@ -4,9 +4,11 @@ import { Geist, Geist_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { Toaster } from "@/components/ui/sonner"
 import { LocaleProvider } from "@/lib/locale-context"
+import { AuthProvider } from "@/lib/auth-context"
 import { OfflineProvider } from "@/lib/offline-provider"
 import { SyncStatusBanner } from "@/components/sync-status-banner"
 import { StoreHydration } from "@/components/store-hydration"
+import { InitDemoUsers } from "@/components/init-demo-users"
 import "./globals.css"
 
 const _geist = Geist({ subsets: ["latin"] })
@@ -40,12 +42,15 @@ export default function RootLayout({
     <html lang="en">
       <body className="font-sans antialiased">
         <LocaleProvider>
-          <OfflineProvider>
-            <StoreHydration />
-            {children}
-            <SyncStatusBanner />
-            <Toaster position="top-right" />
-          </OfflineProvider>
+          <AuthProvider>
+            <OfflineProvider>
+              <StoreHydration />
+              <InitDemoUsers />
+              {children}
+              <SyncStatusBanner />
+              <Toaster position="top-right" />
+            </OfflineProvider>
+          </AuthProvider>
         </LocaleProvider>
         <Analytics />
       </body>

@@ -3,6 +3,37 @@
 export type FormStatus = "draft" | "submitted" | "open" | "closed" | "in-progress"
 export type Priority = "low" | "medium" | "high" | "critical"
 export type SyncStatus = "synced" | "pending" | "error"
+export type UserRole = "admin" | "supervisor" | "worker"
+
+// Authentication user (different from form creator)
+export interface AuthUser {
+  id: string
+  email: string
+  name: string
+  passwordHash: string
+  role: UserRole
+  createdAt: Date
+}
+
+export interface UserGroup {
+  id: string
+  name: string
+  description: string
+  memberIds: string[] // AuthUser IDs
+  createdAt: Date
+}
+
+export interface FormAssignment {
+  formId: string
+  formType: "observation" | "incident" | "inspection"
+  assignedToUserIds: string[] // AuthUser IDs
+  assignedToGroupIds: string[] // UserGroup IDs
+  assignedByUserId: string // AuthUser ID
+  assignedAt: Date
+  notifyOnSubmit: boolean
+  notifyEmails: string[]
+  status: "pending" | "viewed" | "completed"
+}
 
 export interface User {
   id: string

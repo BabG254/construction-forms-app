@@ -2,7 +2,18 @@
 
 import { create } from "zustand"
 import { persist, createJSONStorage } from "zustand/middleware"
-import type { Observation, Incident, Inspection, FormListItem, Project, User, InspectionSection } from "./types"
+import type { 
+  Observation, 
+  Incident, 
+  Inspection, 
+  FormListItem, 
+  Project, 
+  User, 
+  InspectionSection,
+  AuthUser,
+  UserGroup,
+  FormAssignment
+} from "./types"
 
 // Create a custom storage that checks for window availability
 const customStorage = {
@@ -165,7 +176,13 @@ export const inspectionSections: InspectionSection[] = [
 ]
 
 interface AppState {
-  // Data
+  // Auth data
+  authUsers: AuthUser[]
+  currentAuthUserId: string | null
+  userGroups: UserGroup[]
+  formAssignments: FormAssignment[]
+
+  // Legacy form data
   observations: Observation[]
   incidents: Incident[]
   inspections: Inspection[]
@@ -176,6 +193,27 @@ interface AppState {
   // UI state
   isOnline: boolean
   isSyncing: boolean
+
+  // Auth actions
+  addAuthUser: (user: AuthUser) => void
+  updateAuthUser: (id: string, updates: Partial<AuthUser>) => void
+  deleteAuthUser: (id: string) => void
+  setCurrentAuthUserId: (id: string | null) => void
+  getCurrentAuthUser: () => AuthUser | null
+
+  // Group actions
+  addUserGroup: (group: UserGroup) => void
+  updateUserGroup: (id: string, updates: Partial<UserGroup>) => void
+  deleteUserGroup: (id: string) => void
+  addUserToGroup: (groupId: string, userId: string) => void
+  removeUserFromGroup: (groupId: string, userId: string) => void
+
+  // Assignment actions
+  assignForm: (assignment: FormAssignment) => void
+  updateAssignment: (formId: string, updates: Partial<FormAssignment>) => void
+  deleteAssignment: (formId: string) => void
+  getFormAssignment: (formId: string) => FormAssignment | null
+  getMyAssignments: () => FormAssignment[]
 
   // Actions
   setOnlineStatus: (status: boolean) => void
@@ -202,7 +240,13 @@ interface AppState {
 export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
-      // Initial data
+      // Auth data
+      authUsers: [],
+      currentAuthUserId: null,
+      userGroups: [],
+      formAssignments: [],
+
+      // Legacy form data
       observations: [],
       incidents: [],
       inspections: [],
@@ -213,6 +257,77 @@ export const useAppStore = create<AppState>()(
       // UI state
       isOnline: typeof window !== 'undefined',
       isSyncing: false,
+
+      // Auth actions
+      addAuthUser: (user) => set((state) => ({ authUsers: [...state.authUsers, user] })),
+      updateAuthUser: (id, updates) =>
+        set((state) => ({
+          authUsers: state.authUsers.map((u) => (u.id === id ? { ...u, ...updates } : u)),
+        })),
+      deleteAuthUser: (id) => set((state) => ({ authUsers: state.authUsers.filter((u) => u.id !== id) })),
+      setCurrentAuthUserId: (id) => set({ currentAuthUserId: id }),
+      getCurrentAuthUser: () => {
+        const state = get()
+        return state.authUsers.find((u) => u.id === state.currentAuthUserId) || null
+      },
+
+      // Group actions
+      addUserGroup: (group) => set((state) => ({ userGroups: [...state.userGroups, group] })),
+      updateUserGroup: (id, updates) =>
+        set((state) => ({
+          userGroups: state.userGroups.map((g) => (g.id === id ? { ...g, ...updates } : g)),
+        })),
+      deleteUserGroup: (id) => set((state) => ({ userGroups: state.userGroups.filter((g) => g.id !== id) })),
+      addUserToGroup: (groupId, userId) =>
+        set((state) => ({
+          userGroups: state.userGroups.map((g) =>
+            g.id === groupId && !g.memberIds.includes(userId)
+              ? { ...g, memberIds: [...g.memberIds, userId] }
+              : g,
+          ),
+        })),
+      removeUserFromGroup: (groupId, userId) =>
+        set((state) => ({
+          userGroups: state.userGroups.map((g) =>
+            g.id === groupId ? { ...g, memberIds: g.memberIds.filter((id) => id !== userId) } : g,
+          ),
+        })),
+
+      // Assignment actions
+      assignForm: (assignment) =>
+        set((state) => {
+          const existing = state.formAssignments.findIndex((a) => a.formId === assignment.formId)
+          if (existing >= 0) {
+            const updated = [...state.formAssignments]
+            updated[existing] = assignment
+            return { formAssignments: updated }
+          }
+          return { formAssignments: [...state.formAssignments, assignment] }
+        }),
+      updateAssignment: (formId, updates) =>
+        set((state) => ({
+          formAssignments: state.formAssignments.map((a) =>
+            a.formId === formId ? { ...a, ...updates } : a,
+          ),
+        })),
+      deleteAssignment: (formId) =>
+        set((state) => ({
+          formAssignments: state.formAssignments.filter((a) => a.formId !== formId),
+        })),
+      getFormAssignment: (formId) => {
+        const state = get()
+        return state.formAssignments.find((a) => a.formId === formId) || null
+      },
+      getMyAssignments: () => {
+        const state = get()
+        const userId = state.currentAuthUserId
+        if (!userId) return []
+        return state.formAssignments.filter(
+          (a) => a.assignedToUserIds.includes(userId) || a.assignedToGroupIds.some((gid) =>
+            state.userGroups.find((g) => g.id === gid && g.memberIds.includes(userId))
+          ),
+        )
+      },
 
       // Actions
       setOnlineStatus: (status) => set({ isOnline: status }),
