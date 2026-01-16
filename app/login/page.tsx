@@ -57,7 +57,7 @@ export default function LoginPage() {
           <div className="flex justify-center mb-4">
             <img src="/logo.png" alt="Logo" className="h-16 w-16 object-contain" />
           </div>
-          <CardTitle className="text-2xl">Formulaires de chantier</CardTitle>
+          <CardTitle className="text-2xl">Interlag - Soft</CardTitle>
           <CardDescription>{t("loginTitle")}</CardDescription>
         </CardHeader>
         <CardContent>
