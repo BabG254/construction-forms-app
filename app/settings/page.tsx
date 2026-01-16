@@ -1,6 +1,7 @@
 "use client"
 
 import { Globe, Sun, Database, Bell } from "lucide-react"
+import { useTheme } from "next-themes"
 
 export const dynamic = 'force-dynamic'
 import { AppShell } from "@/components/app-shell"
@@ -14,6 +15,7 @@ import { useAppStore } from "@/lib/store"
 
 export default function SettingsPage() {
   const { locale, setLocale, t } = useLocale()
+  const { theme, setTheme } = useTheme()
   const { observations, incidents, inspections } = useAppStore()
 
   const totalForms = observations.length + incidents.length + inspections.length
@@ -120,7 +122,7 @@ export default function SettingsPage() {
                   <Label htmlFor="theme">{t("settings.theme")}</Label>
                   <p className="text-sm text-muted-foreground">{t("settings.theme.desc")}</p>
                 </div>
-                <Select defaultValue="light">
+                <Select value={theme || "system"} onValueChange={setTheme}>
                   <SelectTrigger className="w-32">
                     <SelectValue />
                   </SelectTrigger>

@@ -59,23 +59,25 @@ function IncidentsContent() {
 
       {/* List */}
       {incidents.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
-              <AlertTriangle className="h-8 w-8 text-muted-foreground" />
-            </div>
-            <h3 className="text-lg font-semibold mb-2">{t("empty.noIncidents")}</h3>
-            <p className="text-muted-foreground text-center mb-4">
-              {t("empty.reportIncidents")}
-            </p>
-            <Button asChild>
-              <Link href="/incidents/new">
-                <Plus className="h-4 w-4 mr-2" />
-                {t("dashboard.newIncident")}
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
+        <div className="w-full max-w-2xl mx-auto">
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-16 px-6">
+              <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-6">
+                <AlertTriangle className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <h3 className="text-xl font-semibold mb-3 text-center">{t("empty.noIncidents")}</h3>
+              <p className="text-muted-foreground text-center mb-8 max-w-sm">
+                {t("empty.reportIncidents")}
+              </p>
+              <Button asChild size="lg">
+                <Link href="/incidents/new">
+                  <Plus className="h-4 w-4 mr-2" />
+                  {t("dashboard.newIncident")}
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       ) : (
         <div className="space-y-3">
           {incidents.map((incident) => {

@@ -56,15 +56,15 @@ export function OfflineIndicator({ variant = "minimal", className }: OfflineIndi
         </p>
         <p className="text-xs text-muted-foreground">
           {pendingChanges > 0
-            ? `${pendingChanges} pending changes`
+            ? t("sync.pendingChanges", { count: pendingChanges })
             : lastSyncTime
-              ? `Last synced ${formatDistanceToNow(lastSyncTime, { addSuffix: true })}`
-              : "All changes synced"}
+              ? t("sync.lastSynced", { time: formatDistanceToNow(lastSyncTime, { addSuffix: true }) })
+              : t("sync.allChangesSynced")}
         </p>
       </div>
       {isOnline && pendingChanges > 0 && (
         <Button variant="outline" size="sm" onClick={syncNow} disabled={isSyncing}>
-          {isSyncing ? "Syncing..." : "Sync Now"}
+          {isSyncing ? t("sync.syncing") : t("sync.syncNow")}
         </Button>
       )}
     </div>

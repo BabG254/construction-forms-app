@@ -89,6 +89,11 @@ const translations = {
     "settings.theme.light": "Light",
     "settings.theme.dark": "Dark",
     "settings.theme.system": "System",
+    "sync.allChangesSynced": "All changes synced",
+    "sync.pendingChanges": "{count} pending changes",
+    "sync.lastSynced": "Last synced {time}",
+    "sync.syncNow": "Sync Now",
+    "sync.syncing": "Syncing...",
 
     // Priority levels
     "priority.low": "Low",
@@ -483,6 +488,11 @@ const translations = {
     "settings.theme.light": "Clair",
     "settings.theme.dark": "Sombre",
     "settings.theme.system": "Système",
+    "sync.allChangesSynced": "Tous les changements sont synchronisés",
+    "sync.pendingChanges": "{count} changements en attente",
+    "sync.lastSynced": "Dernière synchronisation {time}",
+    "sync.syncNow": "Synchroniser maintenant",
+    "sync.syncing": "Synchronisation en cours...",
 
     // Priority levels
     "priority.low": "Faible",

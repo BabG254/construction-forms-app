@@ -94,27 +94,31 @@ export default function ObservationsPage() {
 
         {/* Empty State */}
         {filtered.length === 0 && (
-          <Card>
-            <CardContent className="pt-12 pb-12 text-center">
-              <Eye className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="font-semibold text-lg mb-2">
-                {observations.length === 0 ? t("empty.noObservations") : "No matching observations"}
-              </h3>
-              <p className="text-muted-foreground mb-4">
-                {observations.length === 0
-                  ? t("empty.createFirst")
-                  : t("empty.adjustFilters")}
-              </p>
-              {observations.length === 0 && (
-                <Link href="/observations/new">
-                  <Button>
-                    <Plus className="h-4 w-4 mr-2" />
-                    {t("action.new")}
-                  </Button>
-                </Link>
-              )}
-            </CardContent>
-          </Card>
+          <div className="w-full max-w-2xl mx-auto">
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-16 px-6">
+                <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-6">
+                  <Eye className="h-8 w-8 text-muted-foreground" />
+                </div>
+                <h3 className="text-xl font-semibold mb-3 text-center">
+                  {observations.length === 0 ? t("empty.noObservations") : "No matching observations"}
+                </h3>
+                <p className="text-muted-foreground text-center mb-8 max-w-sm">
+                  {observations.length === 0
+                    ? t("empty.recordObservations")
+                    : t("empty.adjustFilters")}
+                </p>
+                {observations.length === 0 && (
+                  <Link href="/observations/new">
+                    <Button size="lg">
+                      <Plus className="h-4 w-4 mr-2" />
+                      {t("action.new")}
+                    </Button>
+                  </Link>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         )}
 
         {/* List */}

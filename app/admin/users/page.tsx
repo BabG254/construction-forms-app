@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useAuth } from "@/lib/auth-context"
 import { useAppStore } from "@/lib/store"
 import { useLocale } from "@/lib/locale-context"
@@ -48,7 +48,7 @@ export default function UsersPage() {
   const canCreateSupervisorOrAdmin = user.role === "admin"
 
   // Set default role based on user permissions
-  React.useEffect(() => {
+  useEffect(() => {
     if (!canCreateSupervisorOrAdmin && newUserRole !== "worker") {
       setNewUserRole("worker")
     }
