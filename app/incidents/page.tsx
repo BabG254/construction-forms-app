@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { useAppStore } from "@/lib/store"
-import jsPDF from "jspdf"
+import { exportIncidentAsPdf } from "@/lib/pdf"
 import { format } from "date-fns"
 
 export const dynamic = 'force-dynamic'
@@ -41,83 +41,10 @@ export default function IncidentsPage() {
     return matchesSearch && matchesStatus
   })
 
-  const handleExportPDF = (incident: (typeof incidents)[0]) => {
+  const handleExportPDF = async (incident: (typeof incidents)[0]) => {
     try {
-      const doc = new jsPDF()
-      let yPosition = 20
-
-      // Title
-      doc.setFontSize(18)
-      doc.text("INCIDENT REPORT", 20, yPosition)
-      yPosition += 12
-
-      // HR line
-      doc.setDrawColor(0)
-      doc.line(20, yPosition - 2, 190, yPosition - 2)
-      yPosition += 8
-
-      // Incident details
-      doc.setFontSize(11)
-      doc.text(`Title: ${incident.title}`, 20, yPosition)
-      yPosition += 6
-      doc.text(`Number: ${incident.number}`, 20, yPosition)
-      yPosition += 6
-      doc.text(`Type: ${incident.accidentType}`, 20, yPosition)
-      yPosition += 6
-      doc.text(`Status: ${incident.status}`, 20, yPosition)
-      yPosition += 6
-      doc.text(`Event Date: ${format(new Date(incident.eventDate), "MMM d, yyyy")}`, 20, yPosition)
-      yPosition += 6
-      doc.text(`Created: ${format(new Date(incident.createdAt), "MMM d, yyyy")}`, 20, yPosition)
-      yPosition += 10
-
-      // Description
-      doc.setFontSize(12)
-      doc.setFont(undefined, "bold")
-      doc.text("Description:", 20, yPosition)
-      yPosition += 6
-      doc.setFont(undefined, "normal")
-      doc.setFontSize(10)
-      const descLines = doc.splitTextToSize(incident.description, 170)
-      doc.text(descLines, 20, yPosition)
-      yPosition += descLines.length * 5 + 10
-
-      // Impact details
-      doc.setFontSize(11)
-      doc.setFont(undefined, "bold")
-      doc.text("Impact Details:", 20, yPosition)
-      yPosition += 6
-      doc.setFont(undefined, "normal")
-      doc.setFontSize(10)
-      doc.text(`Injuries: ${incident.injuriesCount || 0}`, 20, yPosition)
-      yPosition += 5
-      doc.text(`Environmental Impact: ${incident.environmentalImpact || "None"}`, 20, yPosition)
-      yPosition += 5
-      doc.text(`Property Damage: ${incident.propertyDamage || "None"}`, 20, yPosition)
-      yPosition += 10
-
-      // Root cause
-      doc.setFontSize(11)
-      doc.setFont(undefined, "bold")
-      doc.text("Root Cause Analysis:", 20, yPosition)
-      yPosition += 6
-      doc.setFont(undefined, "normal")
-      doc.setFontSize(10)
-      const rootCauseLines = doc.splitTextToSize(incident.rootCause || "Not specified", 170)
-      doc.text(rootCauseLines, 20, yPosition)
-      yPosition += rootCauseLines.length * 5 + 10
-
-      // Corrective actions
-      doc.setFontSize(11)
-      doc.setFont(undefined, "bold")
-      doc.text("Corrective Actions:", 20, yPosition)
-      yPosition += 6
-      doc.setFont(undefined, "normal")
-      doc.setFontSize(10)
-      const actionsLines = doc.splitTextToSize(incident.correctiveActions || "Not specified", 170)
-      doc.text(actionsLines, 20, yPosition)
-
-      doc.save(`incident-${incident.number}.pdf`)
+      const filename = `${incident.title || incident.number}.pdf`
+      await exportIncidentAsPdf(incident, filename)
       toast.success("Incident exported as PDF successfully")
     } catch (error) {
       console.error("PDF export error:", error)

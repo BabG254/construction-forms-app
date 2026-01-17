@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { useAppStore } from "@/lib/store"
-import jsPDF from "jspdf"
+import { exportObservationAsPdf } from "@/lib/pdf"
 
 export const dynamic = 'force-dynamic'
 import { useLocale } from "@/lib/locale-context"
@@ -45,63 +45,10 @@ export default function ObservationsPage() {
     return matchesSearch && matchesPriority
   })
 
-  const handleExportPDF = (observation: (typeof observations)[0]) => {
+  const handleExportPDF = async (observation: (typeof observations)[0]) => {
     try {
-      const doc = new jsPDF()
-      let yPosition = 20
-
-      // Title
-      doc.setFontSize(18)
-      doc.text("OBSERVATION REPORT", 20, yPosition)
-      yPosition += 12
-
-      // HR line
-      doc.setDrawColor(0)
-      doc.line(20, yPosition - 2, 190, yPosition - 2)
-      yPosition += 8
-
-      // Header info
-      doc.setFontSize(11)
-      doc.text(`Title: ${observation.title}`, 20, yPosition)
-      yPosition += 6
-      doc.text(`Number: ${observation.number}`, 20, yPosition)
-      yPosition += 6
-      doc.text(`Type: ${observation.type}`, 20, yPosition)
-      yPosition += 6
-      doc.text(`Location: ${observation.location}`, 20, yPosition)
-      yPosition += 6
-      doc.text(`Priority: ${observation.priority}`, 20, yPosition)
-      yPosition += 6
-      doc.text(`Status: ${observation.status}`, 20, yPosition)
-      yPosition += 6
-      doc.text(`Created: ${new Date(observation.createdAt).toLocaleDateString()}`, 20, yPosition)
-      yPosition += 10
-
-      // Description
-      doc.setFontSize(12)
-      doc.setFont(undefined, "bold")
-      doc.text("Description:", 20, yPosition)
-      yPosition += 6
-      doc.setFont(undefined, "normal")
-      doc.setFontSize(10)
-      const descLines = doc.splitTextToSize(observation.description, 170)
-      doc.text(descLines, 20, yPosition)
-      yPosition += descLines.length * 5 + 10
-
-      // Assignment info
-      doc.setFontSize(12)
-      doc.setFont(undefined, "bold")
-      doc.text("Assignment Details:", 20, yPosition)
-      yPosition += 6
-      doc.setFont(undefined, "normal")
-      doc.setFontSize(10)
-      
-      doc.text(`Assigned To: ${observation.assignedTo || "Not assigned"}`, 20, yPosition)
-      yPosition += 5
-      doc.text(`Deadline: ${observation.deadline || "No deadline"}`, 20, yPosition)
-      yPosition += 10
-
-      doc.save(`observation-${observation.number}.pdf`)
+      const filename = `${observation.title || observation.number}.pdf`
+      await exportObservationAsPdf(observation, filename)
       toast.success("Observation exported as PDF successfully")
     } catch (error) {
       console.error("PDF export error:", error)

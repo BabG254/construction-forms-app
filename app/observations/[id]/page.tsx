@@ -1,15 +1,15 @@
 "use client"
 
-import { use } from "react"
+import { use, useState } from "react"
 import { useRouter } from "next/navigation"
 import { format } from "date-fns"
-import { Eye, Calendar, User, Building, AlertTriangle, FileText } from "lucide-react"
+import { Eye, Calendar, User, Building, AlertTriangle, FileText, X } from "lucide-react"
 import { AppShell } from "@/components/app-shell"
 import { FormHeader } from "@/components/forms/form-header"
 import { FormSection } from "@/components/forms/form-section"
 import { Badge } from "@/components/ui/badge"
 import { useLocale } from "@/lib/locale-context"
-import { exportElementAsPdf } from "@/lib/pdf"
+import { exportObservationAsPdf } from "@/lib/pdf"
 import { useAppStore } from "@/lib/store"
 import { cn, distanceToNowLocalized, formatLocalized } from "@/lib/utils"
 
@@ -27,6 +27,81 @@ const priorityVariants = {
   high: "bg-destructive/10 text-destructive",
   critical: "bg-destructive text-destructive-foreground",
 }
+
+
+function ImagePreviewButton({ attachment }: { attachment: any }) {
+  const [showPreview, setShowPreview] = useState(false)
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setShowPreview(true)}
+        className="relative group rounded-lg overflow-hidden border border-border bg-muted/50 aspect-square"
+      >
+        <img
+          src={attachment.url}
+          alt={attachment.name}
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+          <Eye className="h-5 w-5 text-white" />
+        </div>
+      </button>
+      {showPreview && (
+        <div 
+          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
+          onClick={() => setShowPreview(false)}
+        >
+          <div className="max-w-2xl max-h-[80vh] relative" onClick={(e) => e.stopPropagation()}>
+            <img
+              src={attachment.url}
+              alt={attachment.name}
+              className="w-full h-full object-contain"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPreview(false)}
+              className="absolute top-4 right-4 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 transition-colors"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
+
+function ObservationDetailHeader({ observation, id, locale }: { observation: any; id: string; locale: string }) {
+  const router = useRouter()
+  const { t } = useLocale()
+  const [isExporting, setIsExporting] = useState(false)
+
+  const handleExportPdf = async () => {
+    try {
+      setIsExporting(true)
+      const filename = `${(observation.title || observation.number)}-${locale}.pdf`
+      await exportObservationAsPdf(observation, filename)
+    } catch (error) {
+      console.error("Export error:", error)
+      alert("Failed to export PDF")
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
+  return (
+    <FormHeader
+      title={observation.title || observation.number}
+      backHref="/observations"
+      onEdit={() => router.push(`/observations/${id}/edit`)}
+      onExportPdf={handleExportPdf}
+      isSaving={isExporting}
+    />
+  )
+}
+
 
 export default function ObservationDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -52,11 +127,10 @@ export default function ObservationDetailPage({ params }: { params: Promise<{ id
 
   return (
     <AppShell>
-      <FormHeader
-        title={observation.title || observation.number}
-        backHref="/observations"
-        onEdit={() => router.push(`/observations/${id}/edit`)}
-        onExportPdf={() => exportElementAsPdf({ elementId: "form-detail", filename: `${(observation.title || observation.number)}-${locale}.pdf` })}
+      <ObservationDetailHeader 
+        observation={observation}
+        id={id}
+        locale={locale}
       />
 
       <div id="form-detail" className="p-4 md:p-6 lg:p-8 max-w-4xl mx-auto space-y-6">
@@ -187,18 +261,44 @@ export default function ObservationDetailPage({ params }: { params: Promise<{ id
         {/* Attachments */}
         {observation.attachments.length > 0 && (
           <FormSection title={t("form.attachments")}>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {observation.attachments.map((attachment) => (
-                <button
-                  key={attachment.id}
-                  type="button"
-                  onClick={() => window.open(attachment.url, "_blank")}
-                  className="p-3 bg-muted/50 rounded-lg hover:bg-muted transition-colors cursor-pointer text-left"
-                >
-                  <p className="text-sm font-medium truncate">{attachment.name}</p>
-                  <p className="text-xs text-muted-foreground">{(attachment.size / 1024).toFixed(1)} KB</p>
-                </button>
-              ))}
+            <div className="space-y-4">
+              {/* Images */}
+              {observation.attachments.some((a: any) => a.type?.startsWith("image/")) && (
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground mb-3">{t("field.photos")}</p>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                    {observation.attachments.map((attachment: any) => {
+                      if (!attachment.type?.startsWith("image/")) return null
+                      return (
+                        <ImagePreviewButton key={attachment.id} attachment={attachment} />
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+              
+              {/* Other files */}
+              {observation.attachments.some((a: any) => !a.type?.startsWith("image/")) && (
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground mb-3">Files</p>
+                  <div className="space-y-2">
+                    {observation.attachments.map((attachment: any) => {
+                      if (attachment.type?.startsWith("image/")) return null
+                      return (
+                        <button
+                          key={attachment.id}
+                          type="button"
+                          onClick={() => window.open(attachment.url, "_blank")}
+                          className="w-full p-3 bg-muted/50 rounded-lg hover:bg-muted transition-colors cursor-pointer text-left"
+                        >
+                          <p className="text-sm font-medium truncate">{attachment.name}</p>
+                          <p className="text-xs text-muted-foreground">{(attachment.size / 1024).toFixed(1)} KB</p>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           </FormSection>
         )}

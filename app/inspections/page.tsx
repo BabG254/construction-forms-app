@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { useAppStore } from "@/lib/store"
-import jsPDF from "jspdf"
+import { exportInspectionAsPdf } from "@/lib/pdf"
 
 export const dynamic = 'force-dynamic'
 import { useLocale } from "@/lib/locale-context"
@@ -46,81 +46,10 @@ export default function InspectionsPage() {
     return Math.round((completed / inspection.responses.length) * 100)
   }
 
-  const handleExportPDF = (inspection: (typeof inspections)[0]) => {
+  const handleExportPDF = async (inspection: (typeof inspections)[0]) => {
     try {
-      const doc = new jsPDF()
-      let yPosition = 20
-
-      // Title
-      doc.setFontSize(18)
-      doc.text("INSPECTION REPORT", 20, yPosition)
-      yPosition += 12
-
-      // HR line
-      doc.setDrawColor(0)
-      doc.line(20, yPosition - 2, 190, yPosition - 2)
-      yPosition += 8
-
-      // Inspection details
-      doc.setFontSize(11)
-      doc.text(`Title: ${inspection.documentTitle}`, 20, yPosition)
-      yPosition += 6
-      doc.text(`ID: ${inspection.id}`, 20, yPosition)
-      yPosition += 6
-      doc.text(`Status: ${inspection.status}`, 20, yPosition)
-      yPosition += 6
-      doc.text(`Created: ${new Date(inspection.createdAt).toLocaleDateString()}`, 20, yPosition)
-      yPosition += 10
-
-      // Description
-      if (inspection.documentDescription) {
-        doc.setFontSize(12)
-        doc.setFont(undefined, "bold")
-        doc.text("Description:", 20, yPosition)
-        yPosition += 6
-        doc.setFont(undefined, "normal")
-        doc.setFontSize(10)
-        const descLines = doc.splitTextToSize(inspection.documentDescription, 170)
-        doc.text(descLines, 20, yPosition)
-        yPosition += descLines.length * 5 + 10
-      }
-
-      // Completion percentage
-      const completionPercentage = getCompletionPercentage(inspection)
-      doc.setFontSize(11)
-      doc.setFont(undefined, "bold")
-      doc.text(`Completion: ${completionPercentage}%`, 20, yPosition)
-      yPosition += 10
-
-      // Responses
-      doc.setFontSize(11)
-      doc.setFont(undefined, "bold")
-      doc.text("Inspection Responses:", 20, yPosition)
-      yPosition += 8
-      doc.setFont(undefined, "normal")
-      doc.setFontSize(10)
-
-      inspection.responses.forEach((response, index) => {
-        if (yPosition > 270) {
-          doc.addPage()
-          yPosition = 20
-        }
-
-        doc.setFont(undefined, "bold")
-        doc.text(`${index + 1}. ${response.itemDescription}`, 20, yPosition)
-        yPosition += 6
-        doc.setFont(undefined, "normal")
-        doc.text(`Response: ${response.response || "Not answered"}`, 25, yPosition)
-        yPosition += 5
-        if (response.notes) {
-          const notesLines = doc.splitTextToSize(`Notes: ${response.notes}`, 165)
-          doc.text(notesLines, 25, yPosition)
-          yPosition += notesLines.length * 5
-        }
-        yPosition += 3
-      })
-
-      doc.save(`inspection-${inspection.id}.pdf`)
+      const filename = `${inspection.documentTitle || `Inspection ${inspection.id.slice(-6)}`}.pdf`
+      await exportInspectionAsPdf(inspection, filename)
       toast.success("Inspection exported as PDF successfully")
     } catch (error) {
       console.error("PDF export error:", error)
