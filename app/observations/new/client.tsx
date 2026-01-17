@@ -24,7 +24,6 @@ export default function NewObservation() {
   const store = useAppStore()
   const { t } = useLocale()
   const [observationTypes, setObservationTypes] = useState<any[]>([])
-  const [files, setFiles] = useState<File[]>([])
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([])
@@ -49,6 +48,7 @@ export default function NewObservation() {
     priority: "low" | "medium" | "high"
     concernedCompany: string
     referenceArticle: string
+    attachments: Attachment[]
     safetyAnalysis: {
       danger: string
       contributingCondition: string
@@ -64,6 +64,7 @@ export default function NewObservation() {
     priority: "medium",
     concernedCompany: "",
     referenceArticle: "",
+    attachments: [] as Attachment[],
     safetyAnalysis: {
       danger: "",
       contributingCondition: "",
@@ -131,14 +132,7 @@ export default function NewObservation() {
           concernedCompany: formData.concernedCompany,
           description: formData.description,
           referenceArticle: formData.referenceArticle,
-          attachments: files.map((file) => ({
-            id: crypto.randomUUID(),
-            name: file.name,
-            type: file.type,
-            size: file.size,
-            url: URL.createObjectURL(file),
-            uploadedAt: new Date(),
-          })) as Attachment[],
+          attachments: formData.attachments,
           safetyAnalysis: formData.safetyAnalysis,
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -452,20 +446,8 @@ export default function NewObservation() {
         {/* Attachments */}
         <FormSection title={t("form.attachments")}>
           <AttachmentUpload 
-            attachments={files.map((file) => ({
-              id: crypto.randomUUID(),
-              name: file.name,
-              type: file.type,
-              size: file.size,
-              url: URL.createObjectURL(file),
-              uploadedAt: new Date(),
-            }))}
-            onChange={(attachments) => {
-              const newFiles = attachments.map((att) => {
-                return new File([], att.name, { type: att.type });
-              });
-              setFiles(newFiles);
-            }}
+            attachments={formData.attachments}
+            onChange={(attachments) => setFormData((prev) => ({ ...prev, attachments }))}
             readOnly={false}
           />
         </FormSection>

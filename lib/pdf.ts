@@ -2,6 +2,9 @@
 
 import jsPDF from "jspdf"
 
+// Base64 encoded logo for PDF (1x1 placeholder - will be replaced with actual logo)
+const LOGO_BASE64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+
 // Professional PDF generator for all forms with logo and header matching the template
 export async function generateProfessionalPDF(data: {
   title: string
@@ -25,152 +28,169 @@ export async function generateProfessionalPDF(data: {
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" })
   const pageWidth = doc.internal.pageSize.getWidth()
   const pageHeight = doc.internal.pageSize.getHeight()
-  const margin = 20
+  const margin = 15
   const contentWidth = pageWidth - 2 * margin
 
-  let yPosition = margin
+  let yPosition = margin + 5
 
   // Helper to check page break
   const checkPageBreak = (spaceNeeded: number) => {
     if (yPosition + spaceNeeded > pageHeight - margin) {
       doc.addPage()
-      yPosition = margin
+      yPosition = margin + 5
     }
   }
 
-  // Try to load and add logo
+  // Add logo (try to load from public folder)
   try {
-    const logoImg = new Image()
-    logoImg.src = "/logo.png"
-    await new Promise((resolve) => {
-      logoImg.onload = resolve
-      logoImg.onerror = resolve // Continue even if logo fails
-    })
-    if (logoImg.complete) {
-      doc.addImage(logoImg, "PNG", margin, yPosition, 25, 25)
+    const response = await fetch("/logo.png")
+    if (response.ok) {
+      const blob = await response.blob()
+      const reader = new FileReader()
+      reader.onload = (e: any) => {
+        try {
+          doc.addImage(e.target.result, "PNG", margin, yPosition - 3, 20, 20)
+        } catch (error) {
+          console.log("Could not add logo image")
+        }
+      }
+      reader.readAsDataURL(blob)
     }
   } catch (error) {
-    console.log("Logo not loaded")
+    console.log("Logo not available, continuing without it")
   }
 
-  // Company information (top left)
-  doc.setFontSize(10)
+  // Company information (top left, right of logo space)
+  doc.setFontSize(9)
   doc.setFont(undefined, "bold")
-  doc.text("Construction Interlag", margin + 30, yPosition + 5)
-  doc.setFontSize(8)
+  doc.text("Construction Interlag", margin + 25, yPosition)
+  
+  doc.setFontSize(7)
   doc.setFont(undefined, "normal")
-  doc.text("926 av Simard, #201", margin + 30, yPosition + 10)
-  doc.text("Chambly, Quebec J3L 4X2", margin + 30, yPosition + 14)
-  doc.text("Téléphone : 514-323-6710", margin + 30, yPosition + 18)
-  doc.text("Télécopieur : 514-323-3682", margin + 30, yPosition + 22)
+  doc.text("926 av Simard, #201", margin + 25, yPosition + 4)
+  doc.text("Chambly, Quebec J3L 4X2", margin + 25, yPosition + 7)
+  doc.text("Téléphone : 514-323-6710", margin + 25, yPosition + 10)
+  doc.text("Télécopieur : 514-323-3682", margin + 25, yPosition + 13)
 
   // Project info on the right side
   if (data.projectInfo) {
     doc.setFontSize(7)
     doc.setFont(undefined, "normal")
-    const projectLines = doc.splitTextToSize(data.projectInfo, 80)
-    let rightY = yPosition + 5
+    const projectLines = doc.splitTextToSize(data.projectInfo, 70)
+    let rightY = yPosition
     projectLines.forEach((line: string) => {
-      doc.text(line, pageWidth - margin - 80, rightY, { align: "left" })
-      rightY += 3
+      doc.text(line, pageWidth - margin - 70, rightY, { align: "left" })
+      rightY += 3.5
     })
   }
 
-  yPosition += 35
+  yPosition += 25
 
-  // Title section
-  doc.setFontSize(14)
+  // Divider line
+  doc.setDrawColor(150, 150, 150)
+  doc.line(margin, yPosition, pageWidth - margin, yPosition)
+  yPosition += 5
+
+  // Title section - centered
+  doc.setFontSize(13)
   doc.setFont(undefined, "bold")
   const titleText = `${data.type.charAt(0).toUpperCase() + data.type.slice(1)} : ${data.title}`
-  doc.text(titleText, pageWidth / 2, yPosition, { align: "center" })
-  yPosition += 10
+  const titleLines = doc.splitTextToSize(titleText, contentWidth)
+  titleLines.forEach((line: string, index: number) => {
+    doc.text(line, pageWidth / 2, yPosition + (index * 5), { align: "center" })
+  })
+  yPosition += titleLines.length * 5 + 3
 
-  // Statistics boxes (if provided)
-  if (data.statistics) {
-    const boxWidth = 35
-    const boxHeight = 18
-    const boxSpacing = 3
-    const totalWidth = Object.keys(data.statistics).length * (boxWidth + boxSpacing) - boxSpacing
-    let boxX = (pageWidth - totalWidth) / 2
+  // Statistics boxes (if provided) - for inspections
+  if (data.statistics && Object.keys(data.statistics).length > 0) {
+    const statsEntries = Object.entries(data.statistics)
+    const boxWidth = (contentWidth - 2) / statsEntries.length
+    const boxHeight = 14
+    let boxX = margin + 1
 
-    doc.setFontSize(8)
-    Object.entries(data.statistics).forEach(([label, value]) => {
-      // Draw box
-      doc.setFillColor(245, 245, 245)
-      doc.rect(boxX, yPosition, boxWidth, boxHeight, "F")
+    doc.setFontSize(7)
+    statsEntries.forEach(([label, value]) => {
+      // Draw box with border
+      doc.setFillColor(240, 240, 240)
       doc.setDrawColor(200, 200, 200)
-      doc.rect(boxX, yPosition, boxWidth, boxHeight, "S")
+      doc.rect(boxX, yPosition, boxWidth, boxHeight, "FD")
 
       // Add value (large)
-      doc.setFontSize(16)
+      doc.setFontSize(11)
       doc.setFont(undefined, "bold")
-      doc.text(String(value), boxX + boxWidth / 2, yPosition + 9, { align: "center" })
+      doc.text(String(value), boxX + boxWidth / 2, yPosition + 7.5, { align: "center" })
 
       // Add label (small)
-      doc.setFontSize(7)
+      doc.setFontSize(6)
       doc.setFont(undefined, "normal")
-      const labelLines = doc.splitTextToSize(label, boxWidth - 4)
-      doc.text(labelLines, boxX + boxWidth / 2, yPosition + 14, { align: "center" })
+      const labelLines = doc.splitTextToSize(label, boxWidth - 2)
+      labelLines.slice(0, 2).forEach((labelLine: string, idx: number) => {
+        doc.text(labelLine, boxX + boxWidth / 2, yPosition + 9.5 + (idx * 2.5), { align: "center" })
+      })
 
-      boxX += boxWidth + boxSpacing
+      boxX += boxWidth
     })
-    yPosition += boxHeight + 8
+    yPosition += boxHeight + 5
   }
 
-  // Details section
-  doc.setFontSize(11)
+  // Details section - two columns
+  doc.setFontSize(10)
   doc.setFont(undefined, "bold")
   doc.text("Détails", margin, yPosition)
-  yPosition += 7
+  yPosition += 6
 
-  doc.setFontSize(9)
+  doc.setFontSize(8)
   doc.setFont(undefined, "normal")
   
-  // Create two-column layout for details
+  const detailKeys = Object.keys(data.details).filter(k => data.details[k])
+  const midPoint = Math.ceil(detailKeys.length / 2)
+  const leftColX = margin
+  const rightColX = pageWidth / 2 + 5
+
   let leftY = yPosition
   let rightY = yPosition
-  const detailKeys = Object.keys(data.details)
-  const midPoint = Math.ceil(detailKeys.length / 2)
   
   detailKeys.forEach((key, index) => {
     const value = data.details[key]
     if (value) {
       if (index < midPoint) {
         doc.setFont(undefined, "bold")
-        doc.text(`${key}`, margin, leftY)
+        doc.text(`${key}`, leftColX, leftY)
         doc.setFont(undefined, "normal")
-        doc.text(String(value), margin + 40, leftY)
-        leftY += 5
+        const valueLines = doc.splitTextToSize(String(value), 40)
+        doc.text(valueLines, leftColX + 45, leftY)
+        leftY += 4.5
       } else {
         doc.setFont(undefined, "bold")
-        doc.text(`${key}`, pageWidth / 2 + 10, rightY)
+        doc.text(`${key}`, rightColX, rightY)
         doc.setFont(undefined, "normal")
-        doc.text(String(value), pageWidth / 2 + 50, rightY)
-        rightY += 5
+        const valueLines = doc.splitTextToSize(String(value), 40)
+        doc.text(valueLines, rightColX + 45, rightY)
+        rightY += 4.5
       }
     }
   })
 
-  yPosition = Math.max(leftY, rightY) + 5
+  yPosition = Math.max(leftY, rightY) + 3
 
   // Content sections
   data.sections.forEach((section) => {
-    if (section.content) {
-      checkPageBreak(15)
+    if (section.content && section.content.trim()) {
+      checkPageBreak(12)
       doc.setFont(undefined, "bold")
-      doc.setFontSize(11)
+      doc.setFontSize(9)
       doc.text(section.title, margin, yPosition)
-      yPosition += 6
+      yPosition += 5
 
       doc.setFont(undefined, "normal")
-      doc.setFontSize(9)
+      doc.setFontSize(7.5)
       const lines = doc.splitTextToSize(section.content, contentWidth)
       lines.forEach((line: string) => {
-        checkPageBreak(5)
+        checkPageBreak(3)
         doc.text(line, margin, yPosition)
-        yPosition += 5
+        yPosition += 3
       })
-      yPosition += 3
+      yPosition += 2
     }
   })
 
@@ -178,14 +198,14 @@ export async function generateProfessionalPDF(data: {
   if (data.images && data.images.length > 0) {
     checkPageBreak(15)
     doc.setFont(undefined, "bold")
-    doc.setFontSize(11)
+    doc.setFontSize(9)
     doc.text("Pièces jointes", margin, yPosition)
-    yPosition += 8
+    yPosition += 5
 
-    doc.setFontSize(8)
+    doc.setFontSize(7.5)
     doc.setFont(undefined, "normal")
     doc.text("Photos", margin, yPosition)
-    yPosition += 5
+    yPosition += 4
 
     for (const image of data.images) {
       try {
@@ -193,18 +213,32 @@ export async function generateProfessionalPDF(data: {
         const imgWidth = contentWidth * 0.5
         const imgHeight = imgWidth * 0.75
         doc.addImage(image.url, "JPEG", margin, yPosition, imgWidth, imgHeight)
-        yPosition += imgHeight + 3
+        yPosition += imgHeight + 2
 
-        doc.setFontSize(7)
+        doc.setFontSize(6)
         doc.text(image.name, margin, yPosition)
-        yPosition += 8
+        yPosition += 4
       } catch (error) {
         console.error("Failed to add image:", error)
-        doc.setFontSize(8)
+        doc.setFontSize(7)
         doc.text(`[Image: ${image.name}]`, margin, yPosition)
-        yPosition += 6
+        yPosition += 3
       }
     }
+  }
+
+  // Footer with generation date
+  doc.setFontSize(6)
+  doc.setTextColor(120, 120, 120)
+  const pageCount = doc.internal.pages.length - 1
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i)
+    doc.text(
+      `Généré le ${new Date().toLocaleDateString("fr-FR")} à ${new Date().toLocaleTimeString("fr-FR")}`,
+      margin,
+      pageHeight - 5
+    )
+    doc.text(`Page ${i} sur ${pageCount}`, pageWidth - margin - 20, pageHeight - 5)
   }
 
   doc.save(data.filename)
