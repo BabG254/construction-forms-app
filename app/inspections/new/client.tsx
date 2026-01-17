@@ -15,6 +15,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Progress } from "@/components/ui/progress"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import { useAppStore, inspectionSections } from "@/lib/store"
 import { Check, X, AlertCircle, Mail } from "lucide-react"
 import type { Inspection, InspectionItemResponse } from "@/lib/types"
@@ -262,58 +264,65 @@ export default function NewInspection() {
         <FormSection title="Inspection Information" defaultOpen>
           <FormField
             label={t("inspection.titleLabel")}
-            name="documentTitle"
-            placeholder={t("inspection.titlePlaceholder")}
-            value={formData.documentTitle}
-            onChange={(e) => setFormData((prev) => ({ ...prev, documentTitle: e.target.value }))}
-            error={errors.documentTitle}
             required
-          />
+            error={errors.documentTitle}
+          >
+            <Input
+              placeholder={t("inspection.titlePlaceholder")}
+              value={formData.documentTitle}
+              onChange={(e) => setFormData((prev) => ({ ...prev, documentTitle: e.target.value }))}
+            />
+          </FormField>
 
           <div className="grid grid-cols-2 gap-4">
             <FormField
               label={t("inspection.typeLabel")}
-              name="type"
-              as="select"
-              value={formData.type}
-              onChange={(e) => setFormData((prev) => ({ ...prev, type: e.target.value }))}
-              error={errors.type}
               required
+              error={errors.type}
             >
-              <option value="">{t("inspection.selectType")}</option>
-              <option value="safety">{t("inspection.type.safety")}</option>
-              <option value="compliance">{t("inspection.type.compliance")}</option>
-              <option value="incident-follow-up">{t("inspection.type.incidentFollowUp")}</option>
-              <option value="routine">{t("inspection.type.routine")}</option>
+              <select
+                value={formData.type}
+                onChange={(e) => setFormData((prev) => ({ ...prev, type: e.target.value }))}
+                className="w-full px-3 py-2 border border-input rounded-md bg-background text-sm"
+              >
+                <option value="">{t("inspection.selectType")}</option>
+                <option value="safety">{t("inspection.type.safety")}</option>
+                <option value="compliance">{t("inspection.type.compliance")}</option>
+                <option value="incident-follow-up">{t("inspection.type.incidentFollowUp")}</option>
+                <option value="routine">{t("inspection.type.routine")}</option>
+              </select>
             </FormField>
 
             <FormField
               label={t("form.project")}
-              name="projectId"
-              as="select"
-              value={formData.projectId}
-              onChange={(e) => setFormData((prev) => ({ ...prev, projectId: e.target.value }))}
-              error={errors.projectId}
               required
+              error={errors.projectId}
             >
-              <option value="">{t("inspection.projectSelect")}</option>
-              {projects?.map((project) => (
-                <option key={project.id} value={project.id}>
-                  {project.name}
-                </option>
-              ))}
+              <select
+                value={formData.projectId}
+                onChange={(e) => setFormData((prev) => ({ ...prev, projectId: e.target.value }))}
+                className="w-full px-3 py-2 border border-input rounded-md bg-background text-sm"
+              >
+                <option value="">{t("inspection.projectSelect")}</option>
+                {projects?.map((project) => (
+                  <option key={project.id} value={project.id}>
+                    {project.name}
+                  </option>
+                ))}
+              </select>
             </FormField>
           </div>
 
           <FormField
             label={t("inspection.descriptionNotes")}
-            name="description"
-            as="textarea"
-            placeholder={t("form.description")}
-            value={formData.description}
-            onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
-            rows={3}
-          />
+          >
+            <Textarea
+              placeholder={t("form.description")}
+              value={formData.description}
+              onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
+              rows={3}
+            />
+          </FormField>
 
           {errors.completion && (
             <Alert variant="destructive">

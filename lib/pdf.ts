@@ -2,9 +2,6 @@
 
 import jsPDF from "jspdf"
 
-// Base64 encoded logo for PDF (1x1 placeholder - will be replaced with actual logo)
-const LOGO_BASE64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
-
 // Professional PDF generator for all forms with logo and header matching the template
 export async function generateProfessionalPDF(data: {
   title: string
@@ -41,23 +38,14 @@ export async function generateProfessionalPDF(data: {
     }
   }
 
-  // Add logo (try to load from public folder)
+  // Try to load logo as image - non-blocking
   try {
-    const response = await fetch("/logo.png")
-    if (response.ok) {
-      const blob = await response.blob()
-      const reader = new FileReader()
-      reader.onload = (e: any) => {
-        try {
-          doc.addImage(e.target.result, "PNG", margin, yPosition - 3, 20, 20)
-        } catch (error) {
-          console.log("Could not add logo image")
-        }
-      }
-      reader.readAsDataURL(blob)
+    if (typeof window !== "undefined" && window.location) {
+      const logoUrl = "/logo.png"
+      doc.addImage(logoUrl, "PNG", margin, yPosition - 3, 20, 20)
     }
   } catch (error) {
-    console.log("Logo not available, continuing without it")
+    console.log("Logo not available")
   }
 
   // Company information (top left, right of logo space)
@@ -230,7 +218,7 @@ export async function generateProfessionalPDF(data: {
   // Footer with generation date
   doc.setFontSize(6)
   doc.setTextColor(120, 120, 120)
-  const pageCount = doc.internal.pages.length - 1
+  const pageCount = (doc as any).internal.getNumberOfPages()
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i)
     doc.text(
