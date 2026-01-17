@@ -156,7 +156,7 @@ export default function NewObservation() {
         setIsSubmitting(false)
       }
     },
-    [formData, files, validateForm, addObservation, currentUser, router, selectedUserIds, selectedGroupIds, sendNotifications, userGroups, authUsers],
+    [formData, validateForm, addObservation, currentUser, router, selectedUserIds, selectedGroupIds, sendNotifications, userGroups, authUsers],
   )
 
   // Email notification function (simulated for now)
