@@ -37,7 +37,7 @@ function ImagePreviewButton({ attachment }: { attachment: any }) {
       <button
         type="button"
         onClick={() => setShowPreview(true)}
-        className="relative group rounded-lg overflow-hidden border border-border bg-muted/50 aspect-square"
+        className="relative group rounded-lg overflow-hidden border border-border bg-muted/50 aspect-square cursor-pointer hover:border-primary transition-all hover:scale-105"
       >
         <img
           src={attachment.url}
@@ -45,24 +45,25 @@ function ImagePreviewButton({ attachment }: { attachment: any }) {
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-          <Eye className="h-5 w-5 text-white" />
+          <Eye className="h-6 w-6 text-white" />
+          <span className="sr-only">Preview image</span>
         </div>
       </button>
       {showPreview && (
         <div 
-          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
+          className="fixed inset-0 z-[9999] bg-black/90 flex items-center justify-center p-4"
           onClick={() => setShowPreview(false)}
         >
-          <div className="max-w-2xl max-h-[80vh] relative" onClick={(e) => e.stopPropagation()}>
+          <div className="max-w-4xl max-h-[90vh] relative" onClick={(e) => e.stopPropagation()}>
             <img
               src={attachment.url}
               alt={attachment.name}
-              className="w-full h-full object-contain"
+              className="max-w-full max-h-[90vh] object-contain rounded-lg"
             />
             <button
               type="button"
               onClick={() => setShowPreview(false)}
-              className="absolute top-4 right-4 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 transition-colors"
+              className="absolute -top-2 -right-2 bg-white hover:bg-gray-100 text-gray-800 rounded-full p-2 shadow-lg transition-colors"
             >
               <X className="h-5 w-5" />
             </button>
