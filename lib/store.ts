@@ -370,7 +370,7 @@ export const useAppStore = create<AppState>()(
         const state = get()
         const drafts: FormListItem[] = [
           ...state.observations
-            .filter((o) => o.status === "draft")
+            .filter((o) => o.status === "draft" || o.status === "in-progress")
             .map((o) => ({
               id: o.id,
               type: "observation" as const,
@@ -382,7 +382,7 @@ export const useAppStore = create<AppState>()(
               syncStatus: o.syncStatus,
             })),
           ...state.incidents
-            .filter((i) => i.status === "draft")
+            .filter((i) => i.status === "draft" || i.status === "in-progress")
             .map((i) => ({
               id: i.id,
               type: "incident" as const,
@@ -394,7 +394,7 @@ export const useAppStore = create<AppState>()(
               syncStatus: i.syncStatus,
             })),
           ...state.inspections
-            .filter((i) => i.status === "draft")
+            .filter((i) => i.status === "draft" || i.status === "in-progress")
             .map((i) => ({
               id: i.id,
               type: "inspection" as const,
@@ -412,7 +412,7 @@ export const useAppStore = create<AppState>()(
         const state = get()
         const submissions: FormListItem[] = [
           ...state.observations
-            .filter((o) => o.status !== "draft")
+            .filter((o) => o.status === "submitted")
             .map((o) => ({
               id: o.id,
               type: "observation" as const,
@@ -424,7 +424,7 @@ export const useAppStore = create<AppState>()(
               syncStatus: o.syncStatus,
             })),
           ...state.incidents
-            .filter((i) => i.status !== "draft")
+            .filter((i) => i.status === "submitted")
             .map((i) => ({
               id: i.id,
               type: "incident" as const,
@@ -436,7 +436,7 @@ export const useAppStore = create<AppState>()(
               syncStatus: i.syncStatus,
             })),
           ...state.inspections
-            .filter((i) => i.status !== "draft")
+            .filter((i) => i.status === "submitted")
             .map((i) => ({
               id: i.id,
               type: "inspection" as const,

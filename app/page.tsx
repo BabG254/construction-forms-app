@@ -53,7 +53,7 @@ export default function DashboardPage() {
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-lg font-semibold">{t("dashboard.recentDrafts")}</CardTitle>
               <Button variant="ghost" size="sm" asChild>
-                <Link href="/inspections">{t("dashboard.viewAll")}</Link>
+                <Link href="/forms/drafts">{t("dashboard.viewAll")}</Link>
               </Button>
             </CardHeader>
             <CardContent className="p-0">
@@ -66,7 +66,7 @@ export default function DashboardPage() {
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-lg font-semibold">{t("dashboard.recentSubmissions")}</CardTitle>
               <Button variant="ghost" size="sm" asChild>
-                <Link href="/observations">{t("dashboard.viewAll")}</Link>
+                <Link href="/forms/submissions">{t("dashboard.viewAll")}</Link>
               </Button>
             </CardHeader>
             <CardContent className="p-0">

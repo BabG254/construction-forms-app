@@ -21,11 +21,11 @@ const typeColors = {
 }
 
 const statusVariants = {
-  draft: "bg-muted text-muted-foreground",
-  submitted: "bg-primary/10 text-primary",
+  draft: "bg-muted text-white",
+  submitted: "bg-primary/10 text-white",
   open: "bg-warning/10 text-warning-foreground",
   closed: "bg-accent/10 text-accent",
-  "in-progress": "bg-info/10 text-info",
+  "in-progress": "bg-orange-500 text-white",
 }
 
 interface FormListProps {
