@@ -24,22 +24,9 @@ export function InspectionChecklist({
 }: InspectionChecklistProps) {
   const { t } = useLocale()
   const [isOpen, setIsOpen] = useState(true)
-  const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set())
 
   const getResponseForItem = (itemId: string) => {
     return responses.find((r) => r.itemId === itemId)
-  }
-
-  const toggleComment = (itemId: string) => {
-    setExpandedComments((prev) => {
-      const next = new Set(prev)
-      if (next.has(itemId)) {
-        next.delete(itemId)
-      } else {
-        next.add(itemId)
-      }
-      return next
-    })
   }
 
   // Calculate summary
@@ -95,8 +82,6 @@ export function InspectionChecklist({
             <div className="divide-y">
               {section.items.map((item) => {
                 const itemResponse = getResponseForItem(item.id)
-                const hasComment = expandedComments.has(item.id)
-
                 return (
                   <div key={item.id} className="px-4 md:px-5 py-4">
                     <div className="flex items-start gap-4">
@@ -104,7 +89,7 @@ export function InspectionChecklist({
                       <span className="text-sm font-mono text-muted-foreground shrink-0 w-10">{item.number}</span>
 
                       {/* Label */}
-                      <p className="flex-1 text-sm text-foreground min-w-0">{item.label}</p>
+                      <p className="flex-1 text-sm text-foreground min-w-0">{t(`inspection.item.${item.id}` as any)}</p>
 
                       {/* Response buttons */}
                       <div className="flex items-center gap-1 shrink-0">
@@ -154,37 +139,19 @@ export function InspectionChecklist({
                           <Minus className="h-5 w-5" />
                         </Button>
 
-                        {/* Comment toggle */}
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className={cn(
-                            "h-10 w-10 rounded-lg ml-1",
-                            hasComment || itemResponse?.comment
-                              ? "bg-primary/10 text-primary"
-                              : "text-muted-foreground hover:text-foreground",
-                          )}
-                          onClick={() => toggleComment(item.id)}
-                          aria-label="Add comment"
-                        >
-                          <MessageSquare className="h-4 w-4" />
-                        </Button>
                       </div>
                     </div>
 
-                    {/* Comment field */}
-                    {hasComment && (
-                      <div className="mt-3 ml-14 animate-in slide-in-from-top-1 duration-150">
-                        <Textarea
-                          placeholder="Add a comment..."
-                          value={itemResponse?.comment || ""}
-                          onChange={(e) => onCommentChange(item.id, e.target.value)}
-                          rows={2}
-                          className="text-sm"
-                        />
-                      </div>
-                    )}
+                    {/* Comment field always available */}
+                    <div className="mt-3 ml-14">
+                      <Textarea
+                        placeholder={t("inspection.addComment")}
+                        value={itemResponse?.comment || ""}
+                        onChange={(e) => onCommentChange(item.id, e.target.value)}
+                        rows={2}
+                        className="text-sm"
+                      />
+                    </div>
                   </div>
                 )
               })}

@@ -23,6 +23,16 @@ const statusVariants: Record<string, string> = {
   closed: "bg-green-100 text-green-800 dark:bg-green-900",
 }
 
+// Helper function to convert status key to translation key
+const getStatusTranslationKey = (status: string): string => {
+  const statusMap: Record<string, string> = {
+    "draft": "status.draft",
+    "in-progress": "status.inProgress",
+    "closed": "status.closed"
+  }
+  return statusMap[status] || `status.${status}`
+}
+
 export default function InspectionsPage() {
   const { inspections, deleteInspection, projects } = useAppStore()
   const { t } = useLocale()
@@ -93,15 +103,19 @@ export default function InspectionsPage() {
               />
             </div>
             <div className="flex gap-2 flex-wrap">
-              {["draft", "in-progress", "closed"].map((status) => (
+              {[
+                { key: "draft", label: "status.draft" },
+                { key: "in-progress", label: "status.inProgress" },
+                { key: "closed", label: "status.closed" }
+              ].map((status) => (
                 <Button
-                  key={status}
-                  variant={filterStatus === status ? "default" : "outline"}
+                  key={status.key}
+                  variant={filterStatus === status.key ? "default" : "outline"}
                   size="sm"
-                  onClick={() => setFilterStatus(filterStatus === status ? null : status)}
+                  onClick={() => setFilterStatus(filterStatus === status.key ? null : status.key)}
                   className="capitalize text-xs"
                 >
-                  {t(`status.${status}` as any)}
+                  {t(status.label as any)}
                 </Button>
               ))}
             </div>
@@ -140,7 +154,7 @@ export default function InspectionsPage() {
                 const completionPercentage = getCompletionPercentage(inspection)
                 const conforming = inspection.responses.filter((r) => r.response === "conforming").length
                 const nonConforming = inspection.responses.filter((r) => r.response === "non-conforming").length
-                const notApplicable = inspection.responses.filter((r) => r.response === "na").length
+                const notApplicable = inspection.responses.filter((r) => r.response === "not-applicable").length
 
                 return (
                   <Card key={inspection.id} className="hover:shadow-lg transition-shadow">
@@ -156,7 +170,7 @@ export default function InspectionsPage() {
                               variant="secondary"
                               className={cn("text-xs", statusVariants[inspection.status])}
                             >
-                              {t(`status.${inspection.status}` as any)}
+                              {t(getStatusTranslationKey(inspection.status) as any)}
                             </Badge>
                           </div>
                           <p className="text-xs text-muted-foreground">{inspection.id}</p>
@@ -177,15 +191,15 @@ export default function InspectionsPage() {
                       <div className="grid grid-cols-3 gap-2 mb-4 text-xs">
                         <div className="text-center">
                           <div className="font-bold text-green-600">{conforming}</div>
-                          <div className="text-muted-foreground">Conforming</div>
+                          <div className="text-muted-foreground">{t("inspection.conforming")}</div>
                         </div>
                         <div className="text-center">
                           <div className="font-bold text-red-600">{nonConforming}</div>
-                          <div className="text-muted-foreground">Non-Conf.</div>
+                          <div className="text-muted-foreground">{t("inspection.nonConforming")}</div>
                         </div>
                         <div className="text-center">
                           <div className="font-bold text-gray-600">{notApplicable}</div>
-                          <div className="text-muted-foreground">N/A</div>
+                          <div className="text-muted-foreground">{t("inspection.notApplicable")}</div>
                         </div>
                       </div>
 

@@ -26,6 +26,18 @@ const statusVariants: Record<string, string> = {
   draft: "bg-blue-100 text-blue-800 dark:bg-blue-900",
   submitted: "bg-green-100 text-green-800 dark:bg-green-900",
   archived: "bg-gray-100 text-gray-800 dark:bg-gray-900",
+  open: "bg-blue-100 text-blue-800 dark:bg-blue-900",
+}
+
+// Helper function to convert status key to translation key
+const getStatusTranslationKey = (status: string): string => {
+  const statusMap: Record<string, string> = {
+    "draft": "status.draft",
+    "submitted": "status.submitted",
+    "archived": "status.archived",
+    "open": "status.open"
+  }
+  return statusMap[status] || `status.${status}`
 }
 
 export default function ObservationsPage() {
@@ -157,7 +169,7 @@ export default function ObservationsPage() {
                       <div className="grid grid-cols-2 gap-2 mb-4 text-xs">
                         <div>
                           <span className="text-muted-foreground">{t("field.type")}</span>
-                          <p className="font-medium">{observation.type}</p>
+                          <p className="font-medium">{observation.type ? t(`observation.type.${observation.type}` as any) : "-"}</p>
                         </div>
                         <div>
                           <span className="text-muted-foreground">{t("field.location")}</span>
@@ -167,7 +179,7 @@ export default function ObservationsPage() {
 
                       <div className="flex flex-wrap gap-2 mb-4">
                         <Badge variant="secondary" className={cn("text-xs", statusVariants[observation.status])}>
-                          {t(`status.${observation.status}` as any)}
+                          {t(getStatusTranslationKey(observation.status) as any)}
                         </Badge>
                         <Badge
                           variant="secondary"

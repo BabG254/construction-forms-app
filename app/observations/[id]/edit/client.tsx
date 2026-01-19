@@ -223,7 +223,7 @@ export default function EditObservation({ params }: { params: Promise<{ id: stri
                 <SelectContent>
                   {observationTypes?.map((type) => (
                     <SelectItem key={type.id} value={type.id}>
-                      {type.label}
+                      {t(`observation.type.${type.id}` as any)}
                     </SelectItem>
                   ))}
                 </SelectContent>

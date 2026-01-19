@@ -38,6 +38,7 @@ export default function NewInspection() {
     type: "",
     projectId: projects[0]?.id || "",
     description: "",
+    status: "draft" as string,
     responses: {} as Record<string, InspectionItemResponse>,
   })
 
@@ -111,7 +112,7 @@ export default function NewInspection() {
           creatorId: currentUser?.id || "unknown",
           distribution: distributionList,
           closedById: null,
-          status: "in-progress",
+          status: formData.status,
           responses: responsesArray,
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -313,6 +314,25 @@ export default function NewInspection() {
             </FormField>
           </div>
 
+          <div className="grid grid-cols-2 gap-4">
+            <FormField
+              label={t("form.status")}
+              required
+            >
+              <select
+                value={formData.status}
+                onChange={(e) => setFormData((prev) => ({ ...prev, status: e.target.value as any }))}
+                className="w-full px-3 py-2 border border-input rounded-md bg-background text-sm"
+              >
+                <option value="draft">{t("status.draft")}</option>
+                <option value="in-progress">{t("status.inProgress")}</option>
+                <option value="closed">{t("status.closed")}</option>
+              </select>
+            </FormField>
+
+            <div></div>
+          </div>
+
           <FormField
             label={t("inspection.descriptionNotes")}
           >
@@ -360,7 +380,7 @@ export default function NewInspection() {
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1">
                             <p className="font-medium">
-                              <span className="text-muted-foreground text-sm">{item.number}</span> {item.label}
+                              <span className="text-muted-foreground text-sm">{item.number}</span> {t(`inspection.item.${item.id}` as any)}
                             </p>
                           </div>
 

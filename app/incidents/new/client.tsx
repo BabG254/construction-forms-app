@@ -61,6 +61,8 @@ export default function NewIncidentPage() {
     // Basic Info
     title: "",
     projectId: "",
+    creatorId: currentUser?.id || "",
+    status: "draft" as "draft" | "in-progress" | "submitted",
     location: "",
     eventDate: "",
     eventTime: "",
@@ -83,6 +85,8 @@ export default function NewIncidentPage() {
     daysAbsent: 0,
     restrictedWorkDays: 0,
     returnToWorkDate: "",
+    treatmentProvider: "",
+    treatmentCenter: "",
     dateOfDeath: "",
     
     // Attachments
@@ -186,7 +190,7 @@ export default function NewIncidentPage() {
         eventDate: new Date(formData.eventDate),
         eventTime: formData.eventTime,
         accidentType: formData.accidentType,
-        status,
+        status: formData.status || status,
         distribution: uniqueDistribution,
         concernedCompany: formData.concernedCompany,
         description: formData.description,
@@ -346,13 +350,12 @@ export default function NewIncidentPage() {
               </Select>
             </FormField>
 
-            {/* Location */}
-            <FormField label={t("incident.location")} required error={errors.location}>
+            {/* Creator */}
+            <FormField label={t("form.createdBy")}>
               <Input
-                value={formData.location}
-                onChange={(e) => handleFieldChange("location", e.target.value)}
-                placeholder={t("incident.locationPlaceholder")}
-                className={`h-12 ${errors.location ? "border-destructive" : ""}`}
+                value={currentUser?.name || ""}
+                disabled
+                className="h-12 bg-muted"
               />
             </FormField>
 
@@ -363,6 +366,30 @@ export default function NewIncidentPage() {
                 value={formData.eventDate}
                 onChange={(e) => handleFieldChange("eventDate", e.target.value)}
                 className={`h-12 ${errors.eventDate ? "border-destructive" : ""}`}
+              />
+            </FormField>
+
+            {/* Status */}
+            <FormField label={t("form.status")} required>
+              <Select value={formData.status} onValueChange={(value: any) => handleFieldChange("status", value)}>
+                <SelectTrigger className="h-12">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="draft">{t("status.draft")}</SelectItem>
+                  <SelectItem value="in-progress">{t("status.inProgress")}</SelectItem>
+                  <SelectItem value="submitted">{t("status.submitted")}</SelectItem>
+                </SelectContent>
+              </Select>
+            </FormField>
+
+            {/* Location */}
+            <FormField label={t("incident.location")} required error={errors.location}>
+              <Input
+                value={formData.location}
+                onChange={(e) => handleFieldChange("location", e.target.value)}
+                placeholder={t("incident.locationPlaceholder")}
+                className={`h-12 ${errors.location ? "border-destructive" : ""}`}
               />
             </FormField>
 
@@ -505,7 +532,7 @@ export default function NewIncidentPage() {
 
             {hasMedicalTreatment && (
               <div className="space-y-6 animate-in fade-in-50 duration-300">
-                {/* Injury Type and Body Part */}
+                {/* Row 1: Type de blessure | Partie du corps affectée */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     label={t("incident.injuryType")}
@@ -556,55 +583,21 @@ export default function NewIncidentPage() {
                         <SelectValue placeholder={t("incident.selectBodyPart")} />
                       </SelectTrigger>
                       <SelectContent>
-                        {Object.entries(bodyPartsByCategory).map(([category, parts]) => (
-                          <div key={category}>
-                            <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
-                              {category.charAt(0).toUpperCase() + category.slice(1)}
-                            </div>
-                            {parts.map((part) => (
-                              <SelectItem key={part.id} value={part.id}>
-                                {part.label}
-                              </SelectItem>
-                            ))}
-                          </div>
-                        ))}
+                        {bodyParts && bodyParts.length > 0 ? (
+                          bodyParts.map((part) => (
+                            <SelectItem key={part.id} value={part.id}>
+                              {part.label}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="">No body parts available</SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                   </FormField>
                 </div>
 
-                {/* Treatment Details - Toggles */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg border border-border">
-                    <div>
-                      <Label htmlFor="emergency" className="font-semibold cursor-pointer">
-                        {t("incident.emergencyTreatment")}
-                      </Label>
-                      <p className="text-sm text-muted-foreground mt-1">First aid or emergency services provided</p>
-                    </div>
-                    <Switch
-                      id="emergency"
-                      checked={formData.emergencyTreatment}
-                      onCheckedChange={(checked) => handleFieldChange("emergencyTreatment", checked)}
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg border border-border">
-                    <div>
-                      <Label htmlFor="hospitalized" className="font-semibold cursor-pointer">
-                        {t("incident.hospitalized")}
-                      </Label>
-                      <p className="text-sm text-muted-foreground mt-1">Admitted to hospital overnight or longer</p>
-                    </div>
-                    <Switch
-                      id="hospitalized"
-                      checked={formData.hospitalizedOvernight}
-                      onCheckedChange={(checked) => handleFieldChange("hospitalizedOvernight", checked)}
-                    />
-                  </div>
-                </div>
-
-                {/* Work Impact */}
+                {/* Row 2: Nombre de jours d'absence | Nombre de jours en travail restreint */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     label={t("incident.daysAbsent")}
@@ -621,7 +614,7 @@ export default function NewIncidentPage() {
                   </FormField>
 
                   <FormField
-                    label={t("incident.restrictedDays")}
+                    label={t("incident.restrictedWorkDays")}
                     description={t("incident.restrictedDaysDesc")}
                   >
                     <Input
@@ -637,21 +630,99 @@ export default function NewIncidentPage() {
                   </FormField>
                 </div>
 
-                {/* Return to Work or Fatal Outcome */}
-                {!isFatal && (
+                {/* Row 3: Date de retour au travail | Date du décès */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {!isFatal && (
+                    <FormField
+                      label={t("incident.returnToWorkDate")}
+                      description={t("incident.returnDateDesc")}
+                      error={errors.returnToWorkDate}
+                    >
+                      <Input
+                        type="date"
+                        value={formData.returnToWorkDate}
+                        onChange={(e) => handleFieldChange("returnToWorkDate", e.target.value)}
+                        className={`h-12 ${errors.returnToWorkDate ? "border-destructive" : ""}`}
+                      />
+                    </FormField>
+                  )}
+
+                  {isFatal && (
+                    <FormField
+                      label={t("incident.dateOfDeath")}
+                      required
+                      error={errors.dateOfDeath}
+                      description={t("incident.dateOfDeathDesc")}
+                    >
+                      <Input
+                        type="date"
+                        value={formData.dateOfDeath}
+                        onChange={(e) => handleFieldChange("dateOfDeath", e.target.value)}
+                        className={`h-12 ${errors.dateOfDeath ? "border-destructive" : ""}`}
+                      />
+                    </FormField>
+                  )}
+                </div>
+
+                {/* Row 4: Fournisseur de traitement | Centre de traitement & adresse */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
-                    label={t("incident.returnDate")}
-                    description={t("incident.returnDateDesc")}
-                    error={errors.returnToWorkDate}
+                    label={t("incident.treatmentProvider")}
+                    description={t("incident.treatmentProviderDesc")}
                   >
                     <Input
-                      type="date"
-                      value={formData.returnToWorkDate}
-                      onChange={(e) => handleFieldChange("returnToWorkDate", e.target.value)}
-                      className={`h-12 ${errors.returnToWorkDate ? "border-destructive" : ""}`}
+                      type="text"
+                      value={formData.treatmentProvider || ""}
+                      onChange={(e) => handleFieldChange("treatmentProvider", e.target.value)}
+                      placeholder="e.g., Dr. Smith"
+                      className="h-12"
                     />
                   </FormField>
-                )}
+
+                  <FormField
+                    label={t("incident.treatmentCenter")}
+                    description={t("incident.treatmentCenterDesc")}
+                  >
+                    <Input
+                      type="text"
+                      value={formData.treatmentCenter || ""}
+                      onChange={(e) => handleFieldChange("treatmentCenter", e.target.value)}
+                      placeholder="e.g., City General Hospital"
+                      className="h-12"
+                    />
+                  </FormField>
+                </div>
+
+                {/* Row 5: Traité aux urgences | Hospitalisé jusqu'au lendemain */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg border border-border">
+                    <div>
+                      <Label htmlFor="emergency" className="font-semibold cursor-pointer">
+                        {t("incident.emergencyTreatment")}
+                      </Label>
+                      <p className="text-sm text-muted-foreground mt-1">{t("incident.emergencyTreatmentDesc")}</p>
+                    </div>
+                    <Switch
+                      id="emergency"
+                      checked={formData.emergencyTreatment}
+                      onCheckedChange={(checked) => handleFieldChange("emergencyTreatment", checked)}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg border border-border">
+                    <div>
+                      <Label htmlFor="hospitalized" className="font-semibold cursor-pointer">
+                        {t("incident.hospitalizedOvernight")}
+                      </Label>
+                      <p className="text-sm text-muted-foreground mt-1">{t("incident.hospitalizedDesc")}</p>
+                    </div>
+                    <Switch
+                      id="hospitalized"
+                      checked={formData.hospitalizedOvernight}
+                      onCheckedChange={(checked) => handleFieldChange("hospitalizedOvernight", checked)}
+                    />
+                  </div>
+                </div>
 
                 {isFatal && (
                   <Alert className="border-destructive/50 bg-destructive/10">
@@ -661,22 +732,6 @@ export default function NewIncidentPage() {
                       Please provide accurate information.
                     </AlertDescription>
                   </Alert>
-                )}
-
-                {isFatal && (
-                  <FormField
-                    label={t("incident.dateOfDeath")}
-                    required
-                    error={errors.dateOfDeath}
-                    description={t("incident.dateOfDeathDesc")}
-                  >
-                    <Input
-                      type="date"
-                      value={formData.dateOfDeath}
-                      onChange={(e) => handleFieldChange("dateOfDeath", e.target.value)}
-                      className={`h-12 ${errors.dateOfDeath ? "border-destructive" : ""}`}
-                    />
-                  </FormField>
                 )}
               </div>
             )}

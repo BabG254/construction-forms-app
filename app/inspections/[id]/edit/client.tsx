@@ -46,6 +46,7 @@ export default function EditInspectionPage({ params }: { params: Promise<{ id: s
     type: string
     projectId: string
     description: string
+    status: string
     responses: Record<string, InspectionItemResponse>
     attachments: Attachment[]
   }>(() => ({
@@ -53,12 +54,31 @@ export default function EditInspectionPage({ params }: { params: Promise<{ id: s
     type: inspection?.type || "",
     projectId: inspection?.projectId || (projects && Array.isArray(projects) && projects.length > 0 ? projects[0]?.id : ""),
     description: inspection?.description || "",
+    status: (inspection?.status as string) || "draft",
     responses: inspection?.responses?.reduce((acc, resp) => {
       acc[resp.itemId] = resp
       return acc
     }, {} as Record<string, InspectionItemResponse>) || {},
-    attachments: inspection?.attachments || [],
+    attachments: [],
   }))
+
+  // Sync form data when inspection loads
+  useEffect(() => {
+    if (inspection) {
+      setFormData({
+        documentTitle: inspection.documentTitle,
+        type: inspection.type,
+        projectId: inspection.projectId,
+        description: inspection.description,
+        status: (inspection.status as string),
+        responses: inspection.responses?.reduce((acc, resp) => {
+          acc[resp.itemId] = resp
+          return acc
+        }, {} as Record<string, InspectionItemResponse>) || {},
+        attachments: [],
+      })
+    }
+  }, [inspection?.id])
 
   // Validation state
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -129,6 +149,7 @@ export default function EditInspectionPage({ params }: { params: Promise<{ id: s
           type: formData.type,
           projectId: formData.projectId,
           description: formData.description,
+          status: formData.status,
           distribution: distributionList,
           responses: responsesArray,
           attachments: formData.attachments,
@@ -256,7 +277,6 @@ export default function EditInspectionPage({ params }: { params: Promise<{ id: s
         <FormSection title={t("inspection.info")} defaultOpen>
           <FormField
             label={t("inspection.titleLabel")}
-            name="documentTitle"
             placeholder={t("inspection.titlePlaceholder")}
             value={formData.documentTitle}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
@@ -275,7 +295,6 @@ export default function EditInspectionPage({ params }: { params: Promise<{ id: s
           <div className="grid grid-cols-2 gap-4">
             <FormField
               label={t("inspection.typeLabel")}
-              name="type"
               error={errors.type}
               required
             >
@@ -294,7 +313,6 @@ export default function EditInspectionPage({ params }: { params: Promise<{ id: s
 
             <FormField
               label={t("form.project")}
-              name="projectId"
               error={errors.projectId}
               required
             >
@@ -311,6 +329,30 @@ export default function EditInspectionPage({ params }: { params: Promise<{ id: s
                 </SelectContent>
               </Select>
             </FormField>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <FormField
+              label={t("form.status")}
+              required
+            >
+              <Select value={formData.status} onValueChange={(value: any) => setFormData((prev) => ({ ...prev, status: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder={t("form.status")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="draft">{t("status.draft")}</SelectItem>
+                  <SelectItem value="in-progress">{t("status.inProgress")}</SelectItem>
+                  <SelectItem value="closed">{t("status.closed")}</SelectItem>
+                </SelectContent>
+              </Select>
+            </FormField>
+
+            <div className="flex items-end">
+              <div className="text-sm text-muted-foreground italic">
+                Completion: {completionPercentage}%
+              </div>
+            </div>
           </div>
 
           {errors.completion && (
@@ -349,7 +391,7 @@ export default function EditInspectionPage({ params }: { params: Promise<{ id: s
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1">
                             <p className="font-medium">
-                              <span className="text-muted-foreground text-sm">{item.number}</span> {item.label}
+                              <span className="text-muted-foreground text-sm">{item.number}</span> {t(`inspection.item.${item.id}` as any)}
                             </p>
                           </div>
 

@@ -2,7 +2,7 @@
 
 import { use } from "react"
 import { format } from "date-fns"
-import { ClipboardCheck, Building, User, FileText, Check, X, Minus, Calendar, MessageSquare } from "lucide-react"
+import { ClipboardCheck, Building, User, FileText, Check, X, Minus, Calendar, MessageSquare, Share2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { AppShell } from "@/components/app-shell"
 import { FormHeader } from "@/components/forms/form-header"
@@ -136,6 +136,36 @@ export default function InspectionDetailPage({ params }: { params: Promise<{ id:
             </div>
 
             <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+              <Share2 className="h-5 w-5 text-muted-foreground" />
+              <div>
+                <p className="text-xs text-muted-foreground">{t("form.distribution")}</p>
+                <p className="font-medium">
+                  {Array.isArray(inspection.distribution) && inspection.distribution.length > 0
+                    ? inspection.distribution
+                        .map((id: string) => users.find((u) => u.id === id)?.name || id)
+                        .join(", ")
+                    : "-"}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+              <User className="h-5 w-5 text-muted-foreground" />
+              <div>
+                <p className="text-xs text-muted-foreground">{t("form.closedBy")}</p>
+                <p className="font-medium">{inspection.closedById ? (users.find((u) => u.id === inspection.closedById)?.name || "-") : "-"}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+              <FileText className="h-5 w-5 text-muted-foreground" />
+              <div>
+                <p className="text-xs text-muted-foreground">{t("form.status")}</p>
+                <p className="font-medium">{t(`status.${inspection.status}` as any)}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
               <User className="h-5 w-5 text-muted-foreground" />
               <div>
                 <p className="text-xs text-muted-foreground">{t("form.createdBy")}</p>
@@ -191,7 +221,7 @@ export default function InspectionDetailPage({ params }: { params: Promise<{ id:
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-mono text-muted-foreground">{item.number}</span>
-                          <p className="text-sm">{item.label}</p>
+                          <p className="text-sm">{t(`inspection.item.${item.id}` as any)}</p>
                         </div>
                         {response?.comment && (
                           <div className="flex items-start gap-2 mt-2 text-sm text-muted-foreground">

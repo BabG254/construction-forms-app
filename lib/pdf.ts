@@ -297,62 +297,72 @@ export async function exportElementAsPdf(options?: {
 export async function exportObservationAsPdf(observation: any, filename: string) {
   if (typeof window === "undefined") return
 
+  // Prepare two-column details layout matching the professional template
   const details: Record<string, string | undefined> = {
-    "Number": observation.number,
-    "Status": observation.status,
-    "Priority": observation.priority,
-    "Type": observation.type,
-    "Location": observation.location,
-    "Created By": observation.createdBy || "N/A",
-    "Created Date": new Date(observation.createdAt).toLocaleDateString(),
+    "Origine": observation.origin || "",
+    "Statut": observation.status || "",
+    "Créé par": observation.creatorId || "N/A",
+    "Date de création": observation.createdAt ? new Date(observation.createdAt).toLocaleDateString("fr-FR") : "",
+    "Personne assignée": observation.assignedPersonId || "",
+    "Distribution": observation.distribution?.join(", ") || "",
+    "Date de notification": observation.createdAt ? new Date(observation.createdAt).toLocaleDateString("fr-FR") : "",
+    "Priorité": observation.priority || "",
+    "Lieu": observation.location || "",
+    "Métier": observation.trade || "Charge de projet",
+    "Date d'échéance": observation.dueDate ? new Date(observation.dueDate).toLocaleDateString("fr-FR") : "",
+    "Privé(e)": observation.private ? "Oui" : "Non",
+    "Condition contributive": observation.safetyAnalysis?.contributingCondition || "",
+    "Comportement contributif": observation.safetyAnalysis?.contributingBehavior || "",
+    "Danger": observation.safetyAnalysis?.danger || "",
+    "Section CNESST": observation.cnsstSection || "SSE : SANTÉ SÉCURITÉ ENVIRONNEMENT",
   }
 
-  const sections = []
+  const sections: Array<{ title: string; content: string }> = []
   
+  // Description section with date
   if (observation.description) {
+    const descDate = observation.createdAt ? new Date(observation.createdAt).toLocaleDateString("fr-FR") : ""
     sections.push({
-      title: "Description",
-      content: observation.description,
+      title: `Description`,
+      content: `${descDate} : ${observation.description}`,
     })
   }
 
+  // Reference Article section
   if (observation.referenceArticle) {
     sections.push({
-      title: "Reference Article (CRTC)",
+      title: "Article de référence (CRTC)",
       content: observation.referenceArticle,
     })
   }
 
-  if (observation.safetyAnalysis) {
-    if (observation.safetyAnalysis.danger) {
-      sections.push({
-        title: "Danger",
-        content: observation.safetyAnalysis.danger,
-      })
-    }
-    if (observation.safetyAnalysis.contributingCondition) {
-      sections.push({
-        title: "Contributing Condition",
-        content: observation.safetyAnalysis.contributingCondition,
-      })
-    }
-    if (observation.safetyAnalysis.contributingBehavior) {
-      sections.push({
-        title: "Contributing Behavior",
-        content: observation.safetyAnalysis.contributingBehavior,
-      })
-    }
+  // Mesures correctives / Corrective measures if present
+  if (observation.correctiveMeasures) {
+    sections.push({
+      title: "Mesures correctives",
+      content: observation.correctiveMeasures,
+    })
   }
 
   const images = observation.attachments?.filter((a: any) => a.type?.startsWith("image/")) || []
 
-  const projectInfo = observation.projectNumber ? `Projet : ${observation.projectNumber}` : undefined
+  // Build project info string with all details
+  const projectParts: string[] = []
+  if (observation.projectNumber) {
+    projectParts.push(`Projet : ${observation.projectNumber}`)
+  }
+  if (observation.projectName) {
+    projectParts.push(observation.projectName)
+  }
+  if (observation.projectLocation) {
+    projectParts.push(observation.projectLocation)
+  }
 
   await generateProfessionalPDF({
-    title: observation.title || observation.number,
+    title: `Observation Risque de sécurité N°${observation.number} : ${observation.type || "MES-COR"}: ${observation.title || ""}`,
     type: "observation",
     number: observation.number,
-    projectInfo,
+    projectInfo: projectParts.join(" - ") || undefined,
     details,
     sections,
     images,
@@ -370,15 +380,20 @@ export async function exportInspectionAsPdf(inspection: any, filename: string) {
   const notApplicable = inspection.responses?.filter((r: any) => r.response === "not-applicable" || r.response === "na").length || 0
   const unanswered = totalItems - conforming - nonConforming - notApplicable
 
+  // Main details section in two columns
   const details: Record<string, string | undefined> = {
-    "Type": inspection.type,
-    "Status": inspection.status,
-    "Created By": inspection.createdBy || "N/A",
-    "Created Date": new Date(inspection.createdAt).toLocaleDateString(),
+    "Type": inspection.type || "Santé et sécurité",
+    "Statut": inspection.status ? (inspection.status === "in-progress" ? "Fermé par " + (inspection.creatorId || "N/A") : inspection.status) : "",
+    "Métier": inspection.trade || "Agent de sécurité",
+    "Lieu": inspection.location || "",
+    "Section du devis": inspection.section || "SSE - SANTÉ SÉCURITÉ ENVIRONNEMENT",
+    "Créé par": inspection.creatorId || "N/A",
+    "Plans liés": inspection.attachedPlans || "",
   }
 
-  const sections = []
+  const sections: Array<{ title: string; content: string }> = []
   
+  // Description section
   if (inspection.description) {
     sections.push({
       title: "Description",
@@ -386,20 +401,96 @@ export async function exportInspectionAsPdf(inspection: any, filename: string) {
     })
   }
 
+  // Pièces jointes section
+  if (inspection.attachments && inspection.attachments.length > 0) {
+    sections.push({
+      title: "Pièces jointes",
+      content: `${inspection.attachments.length} fichier(s) attaché(s)`,
+    })
+  }
+
+  // Détails de L'Inspection section
+  const inspectionDetails: string[] = []
+  if (inspection.inspectionDate) {
+    inspectionDetails.push(`Date de l'inspection: ${new Date(inspection.inspectionDate).toLocaleDateString("fr-FR")}`)
+  }
+  if (inspection.dueDate) {
+    inspectionDetails.push(`Date d'échéance: ${new Date(inspection.dueDate).toLocaleDateString("fr-FR")}`)
+  }
+  if (inspection.contactPoint) {
+    inspectionDetails.push(`Point de contact: ${inspection.contactPoint}`)
+  }
+  if (inspection.assignedPersons) {
+    inspectionDetails.push(`Personne(s) assignée(s): ${inspection.assignedPersons}`)
+  }
+  if (inspection.responsibleContractor) {
+    inspectionDetails.push(`Entrepreneur responsable: ${inspection.responsibleContractor}`)
+  }
+
+  if (inspectionDetails.length > 0) {
+    sections.push({
+      title: "Détails de L'Inspection",
+      content: inspectionDetails.join("\n"),
+    })
+  }
+
+  // AST section with response items
+  if (inspection.responses && inspection.responses.length > 0) {
+    const astContent: string[] = []
+    astContent.push(`0 Neutre     ${conforming} Conforme     ${nonConforming} Déficient     0 S.O.\n`)
+    
+    inspection.responses.forEach((response: any, index: number) => {
+      const itemNum = `${index + 1}.${response.subIndex || 1}`
+      const itemTitle = response.title || response.question || "Sans titre"
+      const responseValue = response.response === "conforming" ? "✓ Conforme" : 
+                           response.response === "non-conforming" ? "✓ Échec" :
+                           response.response === "not-applicable" ? "✓ S.O." : "□"
+      
+      astContent.push(`\n${itemNum} ${itemTitle}`)
+      astContent.push(`Activité : ${response.activity || "1 Changement de réponse"}, 0 Pièces jointes, 0 Photos, ${response.comments ? "1" : "0"} Commentaire, 0 Observations`)
+      astContent.push(`     ${responseValue}`)
+      
+      if (response.comments) {
+        astContent.push(`${inspection.creatorId || "Inspecteur"} a ${response.response === "conforming" ? "répondu Conforme" : "répondu"} le ${new Date(inspection.createdAt).toLocaleDateString("fr-FR")} à ${new Date(inspection.createdAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })} EDT`)
+        if (response.comments) {
+          astContent.push(response.comments)
+        }
+      }
+    })
+
+    sections.push({
+      title: "AST",
+      content: astContent.join("\n"),
+    })
+  }
+
   const images = inspection.attachments?.filter((a: any) => a.type?.startsWith("image/")) || []
+
+  // Build project info string
+  const projectParts: string[] = []
+  if (inspection.projectNumber) {
+    projectParts.push(`Projet : ${inspection.projectNumber}`)
+  }
+  if (inspection.projectName) {
+    projectParts.push(inspection.projectName)
+  }
+  if (inspection.projectLocation) {
+    projectParts.push(inspection.projectLocation)
+  }
 
   const statistics = {
     "Articles inspectés": totalItems,
     "Conforme": conforming,
     "Déficient": nonConforming,
-    "S.O.": notApplicable,
     "Neutre": unanswered,
+    "S.O.": notApplicable,
   }
 
   await generateProfessionalPDF({
-    title: inspection.documentTitle || `Inspection N°${inspection.id.slice(-6)}`,
+    title: `Inspection ${inspection.type || "journalière"} N°${inspection.number || inspection.id.slice(-6)}`,
     type: "inspection",
-    number: inspection.id.slice(-6).toUpperCase(),
+    number: inspection.number || inspection.id.slice(-6).toUpperCase(),
+    projectInfo: projectParts.join(" - ") || undefined,
     details,
     statistics,
     sections,
@@ -412,43 +503,72 @@ export async function exportInspectionAsPdf(inspection: any, filename: string) {
 export async function exportIncidentAsPdf(incident: any, filename: string) {
   if (typeof window === "undefined") return
 
+  // Prepare two-column details layout (left column: Creator, Location, Event Date, Event Time, Status | right column: Created Date, Injuries, Distribution)
   const details: Record<string, string | undefined> = {
-    "Number": incident.number,
-    "Status": incident.status,
-    "Severity": incident.severity,
-    "Category": incident.category,
-    "Accident Type": incident.accidentType,
-    "Event Date": new Date(incident.eventDate).toLocaleDateString(),
-    "Injuries Count": String(incident.injuriesCount || 0),
-    "Created Date": new Date(incident.createdAt).toLocaleDateString(),
+    "Créateur": incident.creatorId || "Unknown",
+    "Lieu": incident.location || "",
+    "Date de l'événement": incident.eventDate ? new Date(incident.eventDate).toLocaleDateString() : "",
+    "Heure de l'événement": incident.eventTime || "",
+    "Créé à": incident.createdAt ? new Date(incident.createdAt).toLocaleDateString() : "",
+    "Statut": incident.status || "",
+    "Nombre de blessures": String(incident.injuriesCount || 0),
+    "Distribution": incident.distribution?.join(", ") || "",
   }
 
-  const sections = []
+  const sections: Array<{ title: string; content: string }> = []
   
+  // Description section
   if (incident.description) {
     sections.push({
-      title: "Description",
+      title: "À déclarer - Description",
       content: incident.description,
     })
   }
 
+  // Investigation section
+  const investigationParts: string[] = []
   if (incident.investigation) {
     if (incident.investigation.danger) {
-      sections.push({
-        title: "Danger",
-        content: incident.investigation.danger,
-      })
+      investigationParts.push(`Danger: ${incident.investigation.danger}`)
     }
     if (incident.investigation.contributingCondition) {
-      sections.push({
-        title: "Contributing Condition",
-        content: incident.investigation.contributingCondition,
-      })
+      investigationParts.push(`Condition Contributive: ${incident.investigation.contributingCondition}`)
     }
     if (incident.investigation.contributingBehavior) {
+      investigationParts.push(`Comportement contributif: ${incident.investigation.contributingBehavior}`)
+    }
+  }
+  
+  if (investigationParts.length > 0) {
+    sections.push({
+      title: "Informations sur L'enquête",
+      content: investigationParts.join("\n\n"),
+    })
+  }
+
+  // Medical treatment section if applicable
+  if (incident.medicalTreatment) {
+    const medicalParts: string[] = []
+    if (incident.medicalTreatment.injuryType) {
+      medicalParts.push(`Type de blessure: ${incident.medicalTreatment.injuryType}`)
+    }
+    if (incident.medicalTreatment.bodyPart) {
+      medicalParts.push(`Partie du corps: ${incident.medicalTreatment.bodyPart}`)
+    }
+    if (incident.medicalTreatment.hospitalizedOvernight) {
+      medicalParts.push(`Hospitalisé: Oui`)
+    }
+    if (incident.medicalTreatment.daysAbsent > 0) {
+      medicalParts.push(`Jours d'absence: ${incident.medicalTreatment.daysAbsent}`)
+    }
+    if (incident.medicalTreatment.restrictedWorkDays > 0) {
+      medicalParts.push(`Jours en travail restreint: ${incident.medicalTreatment.restrictedWorkDays}`)
+    }
+    
+    if (medicalParts.length > 0) {
       sections.push({
-        title: "Contributing Behavior",
-        content: incident.investigation.contributingBehavior,
+        title: "Traitement Médical",
+        content: medicalParts.join("\n"),
       })
     }
   }
@@ -456,9 +576,10 @@ export async function exportIncidentAsPdf(incident: any, filename: string) {
   const images = incident.attachments?.filter((a: any) => a.type?.startsWith("image/")) || []
 
   await generateProfessionalPDF({
-    title: incident.title || incident.number,
+    title: `${incident.number} - ${incident.title || incident.accidentType || "Incident"}`,
     type: "incident",
     number: incident.number,
+    projectInfo: incident.projectId ? `Projet: ${incident.projectId}` : undefined,
     details,
     sections,
     images,

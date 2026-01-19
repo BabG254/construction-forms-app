@@ -43,11 +43,13 @@ export default function NewObservation() {
     type: string
     projectId: string
     projectNumber: string
-    location: string
     description: string
     priority: "low" | "medium" | "high"
+    status: "draft" | "in-progress" | "submitted"
     concernedCompany: string
     referenceArticle: string
+    dueDate: string
+    completionDate: string
     attachments: Attachment[]
     safetyAnalysis: {
       danger: string
@@ -59,11 +61,13 @@ export default function NewObservation() {
     type: "",
     projectId: (projects && Array.isArray(projects) && projects.length > 0) ? projects[0]?.id : "",
     projectNumber: "",
-    location: "",
     description: "",
     priority: "medium",
+    status: "draft",
     concernedCompany: "",
     referenceArticle: "",
+    dueDate: "",
+    completionDate: "",
     attachments: [] as Attachment[],
     safetyAnalysis: {
       danger: "",
@@ -125,10 +129,10 @@ export default function NewObservation() {
           creatorId: currentUser?.id || "unknown",
           assignedPersonId: currentUser?.id || "unknown",
           priority: formData.priority,
-          status: "open",
+          status: formData.status,
           distribution: uniqueDistribution,
-          dueDate: null,
-          completionDate: null,
+          dueDate: formData.dueDate ? new Date(formData.dueDate) : null,
+          completionDate: formData.completionDate ? new Date(formData.completionDate) : null,
           concernedCompany: formData.concernedCompany,
           description: formData.description,
           referenceArticle: formData.referenceArticle,
@@ -261,7 +265,7 @@ export default function NewObservation() {
 
           <div className="grid grid-cols-2 gap-4">
             <FormField
-              label={t("field.type")}
+              label={t("observation.type")}
               error={errors.type}
               required
             >
@@ -272,7 +276,7 @@ export default function NewObservation() {
                 <SelectContent>
                   {observationTypes?.map((type) => (
                     <SelectItem key={type.id} value={type.id}>
-                      {type.label}
+                      {t(`observation.type.${type.id}` as any)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -299,21 +303,69 @@ export default function NewObservation() {
             </FormField>
           </div>
 
-          <FormField label={t("observation.projectNumber")}>
-            <Input
-              value={formData.projectNumber}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData((prev) => ({ ...prev, projectNumber: e.target.value }))}
-              placeholder={t("form.description")}
-            />
-          </FormField>
+          <div className="grid grid-cols-2 gap-4">
+            <FormField label={t("observation.projectNumber")}>
+              <Input
+                value={formData.projectNumber}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData((prev) => ({ ...prev, projectNumber: e.target.value }))}
+                placeholder={t("form.description")}
+              />
+            </FormField>
 
-          <FormField label={t("field.location")}>
-            <Input
-              value={formData.location}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData((prev) => ({ ...prev, location: e.target.value }))}
-              placeholder={t("form.description")}
-            />
-          </FormField>
+            <FormField label={t("form.status")} required>
+              <Select value={formData.status} onValueChange={(value: any) => setFormData((prev) => ({ ...prev, status: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder={t("status.draft")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="draft">{t("status.draft")}</SelectItem>
+                  <SelectItem value="in-progress">{t("status.inProgress")}</SelectItem>
+                  <SelectItem value="submitted">{t("status.submitted")}</SelectItem>
+                </SelectContent>
+              </Select>
+            </FormField>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <FormField label={t("form.createdBy")}>
+              <Input
+                value={currentUser?.name || ""}
+                disabled
+                className="bg-muted"
+              />
+            </FormField>
+
+            <FormField label={t("form.priority")} required>
+              <Select value={formData.priority} onValueChange={(value: any) => setFormData((prev) => ({ ...prev, priority: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder={t("priority.medium")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">{t("priority.low")}</SelectItem>
+                  <SelectItem value="medium">{t("priority.medium")}</SelectItem>
+                  <SelectItem value="high">{t("priority.high")}</SelectItem>
+                </SelectContent>
+              </Select>
+            </FormField>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <FormField label={t("observation.dueDate")}>
+              <Input
+                type="date"
+                value={formData.dueDate}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData((prev) => ({ ...prev, dueDate: e.target.value }))}
+              />
+            </FormField>
+
+            <FormField label={t("observation.completionDate")}>
+              <Input
+                type="date"
+                value={formData.completionDate}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData((prev) => ({ ...prev, completionDate: e.target.value }))}
+              />
+            </FormField>
+          </div>
 
           <FormField label={t("observation.concernedCompanyLabel")}>
             <Input
@@ -322,31 +374,56 @@ export default function NewObservation() {
               placeholder={t("observation.concernedCompanyPlaceholder")}
             />
           </FormField>
+        </FormSection>
 
-          <FormField label={t("observation.referenceArticleLabel")}>
-            <Input
-              value={formData.referenceArticle}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData((prev) => ({ ...prev, referenceArticle: e.target.value }))}
-              placeholder={t("observation.referenceArticlePlaceholder")}
-            />
-          </FormField>
+        {/* Description Section */}
+        <FormSection title={t("form.description")} defaultOpen>
+          <div className="space-y-4">
+            <FormField
+              label={t("form.description")}
+              error={errors.description}
+              required
+            >
+              <Textarea
+                value={formData.description}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
+                placeholder={t("observation.descriptionPlaceholder")}
+                rows={5}
+              />
+            </FormField>
 
-          <FormField
-            label={t("form.description")}
-            error={errors.description}
-            required
-          >
-            <Textarea
-              value={formData.description}
-              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
-              placeholder={t("observation.descriptionPlaceholder")}
-              rows={5}
-            />
-          </FormField>
+            <FormField label={t("observation.referenceArticleLabel")}>
+              <Input
+                value={formData.referenceArticle}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData((prev) => ({ ...prev, referenceArticle: e.target.value }))}
+                placeholder={t("observation.referenceArticlePlaceholder")}
+              />
+            </FormField>
+
+            <FormField label={t("form.attachments")}>
+              <AttachmentUpload
+                onFilesAdded={(files: File[]) => {
+                  const newAttachments = files.map((file) => ({
+                    id: `att-${Date.now()}-${Math.random()}`,
+                    name: file.name,
+                    type: file.type,
+                    size: file.size,
+                    url: URL.createObjectURL(file),
+                    uploadedAt: new Date(),
+                  }))
+                  setFormData((prev) => ({ ...prev, attachments: [...prev.attachments, ...newAttachments] }))
+                }}
+                attachments={formData.attachments}
+                onRemove={(id: string) => {
+                  setFormData((prev) => ({ ...prev, attachments: prev.attachments.filter((a) => a.id !== id) }))
+                }}
+              />
+            </FormField>
+          </div>
         </FormSection>
 
         {/* Safety Analysis */}
-          <FormSection title={t("observation.safetyAnalysis")} defaultOpen>
+        <FormSection title={t("observation.safetyAnalysis")} defaultOpen>
           <Alert className="mb-4 bg-blue-50 border-blue-200 dark:bg-blue-950">
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
@@ -441,15 +518,6 @@ export default function NewObservation() {
               {t("notifyUsers")}
             </Label>
           </div>
-        </FormSection>
-
-        {/* Attachments */}
-        <FormSection title={t("form.attachments")}>
-          <AttachmentUpload 
-            attachments={formData.attachments}
-            onChange={(attachments) => setFormData((prev) => ({ ...prev, attachments }))}
-            readOnly={false}
-          />
         </FormSection>
 
         {/* Action Buttons */}

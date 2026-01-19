@@ -55,6 +55,7 @@ const translations = {
     "form.project": "Project",
     "form.createdBy": "Created By",
     "form.distribution": "Distribution",
+    "form.closedBy": "Closed By",
     "form.status": "Status",
     "form.priority": "Priority",
     "form.exportPdf": "Export PDF",
@@ -120,6 +121,16 @@ const translations = {
     "observation.contributingCondition": "Contributing Condition",
     "observation.contributingBehavior": "Contributing Behavior",
 
+    // Observation types
+    "observation.type.unsafe-condition": "Unsafe Condition",
+    "observation.type.unsafe-behavior": "Unsafe Behavior",
+    "observation.type.near-miss": "Near Miss",
+    "observation.type.good-practice": "Good Practice",
+    "observation.type.hazard-awareness": "Hazard Awareness",
+    "observation.type.ppe-non-compliance": "PPE Non-Compliance",
+    "observation.type.housekeeping": "Housekeeping Issue",
+    "observation.type.tool-equipment": "Tool/Equipment Issue",
+
     // Incident form
     "incident.title": "Incident Form",
     "incident.basicInfo": "Basic Information",
@@ -149,11 +160,15 @@ const translations = {
     "incident.withMedicalTreatment": "This incident includes medical treatment",
     "incident.injuryType": "Injury Type",
     "incident.bodyPart": "Body Part Affected",
-    "incident.emergencyTreatment": "Emergency Treatment Required",
-    "incident.hospitalizedOvernight": "Hospitalized Overnight",
+    "incident.emergencyTreatment": "Treated at Emergency",
+    "incident.emergencyTreatmentDesc": "First aid or emergency services provided",
+    "incident.hospitalizedOvernight": "Hospitalized Until the Next Day",
+    "incident.hospitalized": "Incident Hospitalized",
     "incident.daysAbsent": "Days Absent from Work",
-    "incident.restrictedWorkDays": "Days with Restricted Work",
-    "incident.returnToWorkDate": "Return to Work Date",
+    "incident.restrictedWorkDays": "Number of Days on Restricted Work",
+    "incident.returnToWorkDate": "Date of Return to Work",
+    "incident.treatmentProvider": "Treatment Provider",
+    "incident.treatmentCenter": "Treatment Center & Address",
     "incident.fatal": "This incident resulted in a fatality",
     "incident.dateOfDeath": "Date of Death",
     "incident.criticalAlert": "This is a CRITICAL incident type. Ensure all required fields are completed accurately. Management will be notified immediately.",
@@ -201,6 +216,57 @@ const translations = {
     "inspection.section.environment": "Environment",
     "inspection.section.misc": "Miscellaneous (Varia)",
 
+    // Inspection items - AST
+    "inspection.item.ast-1": "AST completed before work begins",
+    "inspection.item.ast-2": "Workers briefed on hazards identified",
+    "inspection.item.ast-3": "Control measures implemented",
+    "inspection.item.ast-4": "AST reviewed when conditions change",
+
+    // Inspection items - PPE
+    "inspection.item.ppe-1": "Hard hats worn in designated areas",
+    "inspection.item.ppe-2": "Safety glasses/goggles worn when required",
+    "inspection.item.ppe-3": "High visibility vests worn",
+    "inspection.item.ppe-4": "Safety footwear worn",
+    "inspection.item.ppe-5": "Hearing protection used when required",
+    "inspection.item.ppe-6": "Gloves appropriate for task worn",
+
+    // Inspection items - Housekeeping
+    "inspection.item.hk-1": "Work areas clean and organized",
+    "inspection.item.hk-2": "Walkways and exits clear",
+    "inspection.item.hk-3": "Materials properly stored",
+    "inspection.item.hk-4": "Waste disposed of properly",
+    "inspection.item.hk-5": "Spills cleaned up immediately",
+
+    // Inspection items - Fire Safety
+    "inspection.item.fire-1": "Fire extinguishers accessible and inspected",
+    "inspection.item.fire-2": "Hot work permits in place",
+    "inspection.item.fire-3": "Flammable materials stored properly",
+    "inspection.item.fire-4": "Fire watch posted when required",
+
+    // Inspection items - Scaffolding
+    "inspection.item.sc-1": "Scaffolding inspected before use",
+    "inspection.item.sc-2": "Guard rails in place",
+    "inspection.item.sc-3": "Ladders secured and in good condition",
+    "inspection.item.sc-4": "Proper access provided",
+    "inspection.item.sc-5": "Tag system in use",
+
+    // Inspection items - Heights
+    "inspection.item.ht-1": "Fall protection used above 1.8m/6ft",
+    "inspection.item.ht-2": "Anchor points adequate",
+    "inspection.item.ht-3": "Harnesses inspected",
+    "inspection.item.ht-4": "Openings protected",
+
+    // Inspection items - Water Safety
+    "inspection.item.wt-1": "Life jackets available when required",
+    "inspection.item.wt-2": "Rescue equipment in place",
+    "inspection.item.wt-3": "Barriers in place near water",
+
+    // Inspection items - Electrical
+    "inspection.item.elec-1": "Electrical equipment properly grounded",
+    "inspection.item.elec-2": "GFI protection in use",
+    "inspection.item.elec-3": "Electrical cords in good condition",
+    "inspection.item.elec-4": "Lockout/tagout procedures followed",
+
     // Common actions
     "action.yes": "Yes",
     "action.no": "No",
@@ -221,6 +287,8 @@ const translations = {
     "field.type": "Type",
     "field.location": "Location",
     "field.photos": "Photos",
+    "field.eventDate": "Event Date",
+    "field.injuries": "Injuries",
 
     // Empty states
     "empty.noObservations": "No observations yet",
@@ -334,6 +402,9 @@ const translations = {
     "incident.daysAbsentDesc": "Number of work days missed due to injury (0 = no time lost)",
     "incident.restrictedDaysDesc": "Number of days on restricted/modified duty",
     "incident.returnDateDesc": "When did the worker return to full duty?",
+    "incident.hospitalizedDesc": "Admitted to hospital overnight or longer",
+    "incident.treatmentProviderDesc": "Name of the healthcare provider",
+    "incident.treatmentCenterDesc": "Healthcare facility name and address",
     "incident.dateOfDeathDesc": "Date when the worker passed away",
     "incident.attachmentsDesc": "Add photos, documents, or other supporting evidence (optional)",
 
@@ -410,9 +481,9 @@ const translations = {
     // Navigation
     "nav.dashboard": "Tableau de bord",
     "nav.siteForms": "Formulaires de chantier",
-    "nav.inspections": "Vérifications",
-    "nav.observations": "Remarques",
-    "nav.incidents": "Sinistres",
+    "nav.inspections": "Inspections",
+    "nav.observations": "Observations",
+    "nav.incidents": "Incidents",
     "nav.settings": "Paramètres",
 
     // Dashboard
@@ -437,7 +508,7 @@ const translations = {
     "status.submitted": "Soumis",
     "status.open": "Ouvert",
     "status.closed": "Fermé",
-    "status.inProgress": "En cours",
+    "status.inProgress": "En Progression",
     "status.archived": "Archivé",
 
     // Form common
@@ -457,6 +528,7 @@ const translations = {
     "form.project": "Projet",
     "form.createdBy": "Créé par",
     "form.distribution": "Distribution",
+    "form.closedBy": "Fermé par",
     "form.status": "Statut",
     "form.priority": "Priorité",
     "form.exportPdf": "Exporter PDF",
@@ -522,6 +594,16 @@ const translations = {
     "observation.contributingCondition": "Condition contributive",
     "observation.contributingBehavior": "Comportement contributif",
 
+    // Observation types
+    "observation.type.unsafe-condition": "Condition dangereuse",
+    "observation.type.unsafe-behavior": "Comportement dangereux",
+    "observation.type.near-miss": "Quasi-accident",
+    "observation.type.good-practice": "Bonne pratique",
+    "observation.type.hazard-awareness": "Sensibilisation aux dangers",
+    "observation.type.ppe-non-compliance": "Non-conformité ÉPI",
+    "observation.type.housekeeping": "Problème d'entretien",
+    "observation.type.tool-equipment": "Problème d'outil/équipement",
+
     // Incident form
     "incident.title": "Formulaire d'incident",
     "incident.basicInfo": "Informations de base",
@@ -551,11 +633,15 @@ const translations = {
     "incident.withMedicalTreatment": "Cet incident comprend un traitement médical",
     "incident.injuryType": "Type de blessure",
     "incident.bodyPart": "Partie du corps affectée",
-    "incident.emergencyTreatment": "Traitement d'urgence requis",
-    "incident.hospitalizedOvernight": "Hospitalisé la nuit",
+    "incident.emergencyTreatment": "Traité aux urgences",
+    "incident.emergencyTreatmentDesc": "Premiers soins ou services d'urgence fournis",
+    "incident.hospitalizedOvernight": "Hospitalisé jusqu'au lendemain",
+    "incident.hospitalized": "Incident hospitalisé",
     "incident.daysAbsent": "Jours d'absence du travail",
-    "incident.restrictedWorkDays": "Jours de travail avec restrictions",
+    "incident.restrictedWorkDays": "Nombre de jours en travail restreint",
     "incident.returnToWorkDate": "Date de retour au travail",
+    "incident.treatmentProvider": "Fournisseur de traitement",
+    "incident.treatmentCenter": "Centre de traitement & adresse",
     "incident.fatal": "Cet incident est décédé",
     "incident.dateOfDeath": "Date de décès",
     "incident.criticalAlert": "Ceci est un type d'incident CRITIQUE. Assurez-vous que tous les champs obligatoires sont complétés avec précision. La gestion sera notifiée immédiatement.",
@@ -603,6 +689,57 @@ const translations = {
     "inspection.section.environment": "Environnement",
     "inspection.section.misc": "Divers (Varia)",
 
+    // Inspection items - AST
+    "inspection.item.ast-1": "AST complété avant le début des travaux",
+    "inspection.item.ast-2": "Travailleurs informés des dangers identifiés",
+    "inspection.item.ast-3": "Mesures de contrôle mises en œuvre",
+    "inspection.item.ast-4": "AST révisé lorsque les conditions changent",
+
+    // Inspection items - PPE
+    "inspection.item.ppe-1": "Casques de sécurité portés dans les zones désignées",
+    "inspection.item.ppe-2": "Lunettes de sécurité/lunettes de protection portées au besoin",
+    "inspection.item.ppe-3": "Gilets de haute visibilité portés",
+    "inspection.item.ppe-4": "Chaussures de sécurité portées",
+    "inspection.item.ppe-5": "Protection auditive utilisée au besoin",
+    "inspection.item.ppe-6": "Gants appropriés pour la tâche portés",
+
+    // Inspection items - Housekeeping
+    "inspection.item.hk-1": "Zones de travail propres et organisées",
+    "inspection.item.hk-2": "Allées et sorties dégagées",
+    "inspection.item.hk-3": "Matériaux correctement entreposés",
+    "inspection.item.hk-4": "Déchets éliminés correctement",
+    "inspection.item.hk-5": "Déversements nettoyés immédiatement",
+
+    // Inspection items - Fire Safety
+    "inspection.item.fire-1": "Extincteurs accessibles et inspectés",
+    "inspection.item.fire-2": "Permis de travaux à chaud en place",
+    "inspection.item.fire-3": "Matériaux inflammables entreposés correctement",
+    "inspection.item.fire-4": "Surveillance incendie postée au besoin",
+
+    // Inspection items - Scaffolding
+    "inspection.item.sc-1": "Échafaudages inspectés avant utilisation",
+    "inspection.item.sc-2": "Garde-corps en place",
+    "inspection.item.sc-3": "Échelles sécurisées et en bon état",
+    "inspection.item.sc-4": "Accès approprié fourni",
+    "inspection.item.sc-5": "Système d'étiquetage en utilisation",
+
+    // Inspection items - Heights
+    "inspection.item.ht-1": "Protection contre les chutes utilisée au-dessus de 1,8 m/6 pi",
+    "inspection.item.ht-2": "Points d'ancrage adéquats",
+    "inspection.item.ht-3": "Harnais inspectés",
+    "inspection.item.ht-4": "Ouvertures protégées",
+
+    // Inspection items - Water Safety
+    "inspection.item.wt-1": "Gilets de sauvetage disponibles au besoin",
+    "inspection.item.wt-2": "Équipement de sauvetage en place",
+    "inspection.item.wt-3": "Barrières en place près de l'eau",
+
+    // Inspection items - Electrical
+    "inspection.item.elec-1": "Équipement électrique correctement mis à la terre",
+    "inspection.item.elec-2": "Protection DDFT en utilisation",
+    "inspection.item.elec-3": "Câbles électriques en bon état",
+    "inspection.item.elec-4": "Procédures de verrouillage/étiquetage suivies",
+
     // Common actions
     "action.yes": "Oui",
     "action.no": "Non",
@@ -623,6 +760,8 @@ const translations = {
     "field.type": "Type",
     "field.location": "Emplacement",
     "field.photos": "Photos",
+    "field.eventDate": "Date de l'événement",
+    "field.injuries": "Blessures",
 
     // Empty states
     "empty.noObservations": "Aucune observation",
@@ -738,6 +877,9 @@ const translations = {
     "incident.daysAbsentDesc": "Nombre de jours de travail manqués en raison de la blessure (0 = aucun temps perdu)",
     "incident.restrictedDaysDesc": "Nombre de jours en service restreint/modifié",
     "incident.returnDateDesc": "Quand le travailleur est-il revenu en service complet ?",
+    "incident.hospitalizedDesc": "Admis à l'hôpital pendant la nuit ou plus longtemps",
+    "incident.treatmentProviderDesc": "Nom du fournisseur de soins de santé",
+    "incident.treatmentCenterDesc": "Nom et adresse de l'établissement de santé",
     "incident.dateOfDeathDesc": "Date du décès du travailleur",
     "incident.attachmentsDesc": "Ajouter des photos, documents ou autres preuves (optionnel)",
 

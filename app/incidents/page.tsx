@@ -24,6 +24,17 @@ const statusVariants: Record<string, string> = {
   closed: "bg-green-100 text-green-800 dark:bg-green-900",
 }
 
+// Helper function to convert status key to translation key
+const getStatusTranslationKey = (status: string): string => {
+  const statusMap: Record<string, string> = {
+    "draft": "status.draft",
+    "open": "status.open",
+    "in-progress": "status.inProgress",
+    "closed": "status.closed"
+  }
+  return statusMap[status] || `status.${status}`
+}
+
 export default function IncidentsPage() {
   const { incidents, deleteIncident, projects } = useAppStore()
   const { t } = useLocale()
@@ -88,15 +99,20 @@ export default function IncidentsPage() {
             />
           </div>
           <div className="flex gap-2 flex-wrap">
-            {["draft", "open", "in-progress", "closed"].map((status) => (
+            {[
+              { key: "draft", label: "status.draft" },
+              { key: "open", label: "status.open" },
+              { key: "in-progress", label: "status.inProgress" },
+              { key: "closed", label: "status.closed" }
+            ].map((status) => (
               <Button
-                key={status}
-                variant={filterStatus === status ? "default" : "outline"}
+                key={status.key}
+                variant={filterStatus === status.key ? "default" : "outline"}
                 size="sm"
-                onClick={() => setFilterStatus(filterStatus === status ? null : status)}
+                onClick={() => setFilterStatus(filterStatus === status.key ? null : status.key)}
                 className="capitalize text-xs"
               >
-                {t(`status.${status}` as any)}
+                {t(status.label as any)}
               </Button>
             ))}
           </div>
@@ -145,7 +161,7 @@ export default function IncidentsPage() {
                         <div className="flex items-center gap-2 mb-1 flex-wrap">
                           <span className="font-semibold">{incident.title || incident.number}</span>
                           <Badge variant="secondary" className={cn("text-xs", statusVariants[incident.status])}>
-                            {t(`status.${incident.status}` as any)}
+                            {t(getStatusTranslationKey(incident.status) as any)}
                           </Badge>
                         </div>
                         <p className="text-xs text-muted-foreground">{incident.number}</p>
@@ -161,11 +177,11 @@ export default function IncidentsPage() {
                         <p className="font-medium">{incident.accidentType}</p>
                       </div>
                       <div>
-                        <span className="text-muted-foreground">Event Date</span>
+                        <span className="text-muted-foreground">{t("field.eventDate")}</span>
                         <p className="font-medium">{format(new Date(incident.eventDate), "MMM d")}</p>
                       </div>
                       <div>
-                        <span className="text-muted-foreground">Injuries</span>
+                        <span className="text-muted-foreground">{t("field.injuries")}</span>
                         <p className="font-medium">{incident.injuriesCount || "0"}</p>
                       </div>
                     </div>

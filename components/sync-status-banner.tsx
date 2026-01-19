@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
 export function SyncStatusBanner() {
-  const { isOnline, isSyncing, pendingChanges, syncNow } = useOffline()
+  const { isOnline, isSyncing, pendingChanges, lastSyncTime } = useOffline()
   const { t } = useLocale()
   const [dismissed, setDismissed] = useState(false)
 
@@ -22,6 +22,29 @@ export function SyncStatusBanner() {
   // Don't show if online with no pending changes, or if dismissed
   if ((isOnline && pendingChanges === 0) || dismissed) {
     return null
+  }
+
+  // Format last sync time
+  const formatLastSync = () => {
+    if (!lastSyncTime) return null
+    const now = new Date()
+    const diffMs = now.getTime() - lastSyncTime.getTime()
+    const diffMins = Math.floor(diffMs / 60000)
+    
+    if (diffMins < 1) return "À l'instant"
+    if (diffMins === 1) return "Il y a 1 minute"
+    if (diffMins < 60) return `Il y a ${diffMins} minutes`
+    
+    const diffHours = Math.floor(diffMins / 60)
+    if (diffHours === 1) return "Il y a 1 heure"
+    if (diffHours < 24) return `Il y a ${diffHours} heures`
+    
+    return lastSyncTime.toLocaleDateString("fr-FR", { 
+      day: "numeric", 
+      month: "short", 
+      hour: "2-digit", 
+      minute: "2-digit" 
+    })
   }
 
   return (
@@ -49,19 +72,18 @@ export function SyncStatusBanner() {
 
       <div className="flex-1 min-w-0">
         <p className={cn("font-semibold text-sm", isOnline ? "text-green-900 dark:text-green-100" : "text-red-900 dark:text-red-100")}>
-          {isOnline ? t("status.pendingChanges", { count: pendingChanges }) : t("status.offline")}
+          {isOnline 
+            ? (isSyncing ? t("status.syncing") : `${pendingChanges} ${pendingChanges > 1 ? "changements en attente" : "changement en attente"}`)
+            : t("status.offline")}
         </p>
         <p className={cn("text-xs", isOnline ? "text-green-700 dark:text-green-300" : "text-red-700 dark:text-red-300")}>
-          {isOnline ? t("status.syncNow") : t("status.localSaveInfo")}
+          {isOnline 
+            ? (lastSyncTime ? `Dernière synchronisation : ${formatLastSync()}` : "En attente de synchronisation")
+            : t("status.localSaveInfo")}
         </p>
       </div>
 
       <div className="flex items-center gap-2 shrink-0">
-        {isOnline && (
-          <Button size="sm" onClick={syncNow} disabled={isSyncing}>
-            {t("action.sync")}
-          </Button>
-        )}
         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setDismissed(true)}>
           <X className="h-4 w-4" />
         </Button>

@@ -171,7 +171,7 @@ export default function ObservationDetailPage({ params }: { params: Promise<{ id
               <FileText className="h-5 w-5 text-muted-foreground" />
               <div>
                 <p className="text-xs text-muted-foreground">{t("observation.type")}</p>
-                <p className="font-medium">{observation.type || "-"}</p>
+                <p className="font-medium">{observation.type ? t(`observation.type.${observation.type}` as any) : "-"}</p>
               </div>
             </div>
 

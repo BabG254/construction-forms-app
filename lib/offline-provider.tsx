@@ -56,12 +56,15 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
     }
   }, [setOnlineStatus, t])
 
-  // Auto-sync when coming back online
+  // Auto-sync when coming back online or when there are pending changes
   useEffect(() => {
-    if (isOnline && pendingChanges > 0) {
-      syncNow()
+    if (isOnline && pendingChanges > 0 && !isSyncing) {
+      const timer = setTimeout(() => {
+        syncNow()
+      }, 500)
+      return () => clearTimeout(timer)
     }
-  }, [isOnline])
+  }, [isOnline, pendingChanges])
 
   const syncNow = async () => {
     if (!isOnline || isSyncing) return
