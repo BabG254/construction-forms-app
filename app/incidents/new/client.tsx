@@ -779,17 +779,7 @@ export default function NewIncidentPage() {
           </div>
         </FormSection>
 
-        {/* Attachments Section */}
-        <FormSection
-          title={t("form.attachments")}
-          collapsible={true}
-          defaultOpen={true}
-        >
-          <AttachmentUpload
-            attachments={formData.attachments}
-            onChange={(attachments) => handleFieldChange("attachments", attachments)}
-          />
-        </FormSection>
+        {/* Attachments Section removed: attachments are handled in the description section above */}
 
         {/* Form Summary & Status */}
         <div className="bg-muted/50 rounded-lg p-4 border border-border">
