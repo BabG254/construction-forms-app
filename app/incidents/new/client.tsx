@@ -64,11 +64,12 @@ export default function NewIncidentPage() {
     creatorId: currentUser?.id || "",
     status: "draft" as "draft" | "in-progress" | "submitted",
     location: "",
+    date: "", // <-- New date field (form creation or report date)
     eventDate: "",
     eventTime: "",
     accidentType: "",
     concernedCompany: "",
-    
+
     // Description
     description: "",
     
@@ -319,146 +320,165 @@ export default function NewIncidentPage() {
             defaultOpen={true}
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Title */}
-            <FormField
-              label={t("form.title")}
-              required
-              className="md:col-span-2"
-              error={errors.title}
-            >
-              <Input
-                value={formData.title}
-                onChange={(e) => handleFieldChange("title", e.target.value)}
-                placeholder={t("incident.titlePlaceholder")}
-                className={`h-12 ${errors.title ? "border-destructive" : ""}`}
-              />
-            </FormField>
+              {/* Title */}
+              <FormField
+                label={t("form.title")}
+                required
+                className="md:col-span-2"
+                error={errors.title}
+              >
+                <Input
+                  value={formData.title}
+                  onChange={(e) => handleFieldChange("title", e.target.value)}
+                  placeholder={t("incident.titlePlaceholder")}
+                  className={`h-12 ${errors.title ? "border-destructive" : ""}`}
+                />
+              </FormField>
 
-            {/* Project */}
-            <FormField label={t("form.project")} required error={errors.projectId}>
-              <Select value={formData.projectId} onValueChange={(value) => handleFieldChange("projectId", value)}>
-                <SelectTrigger className={`h-12 ${errors.projectId ? "border-destructive" : ""}`}>
-                  <SelectValue placeholder={t("incident.selectProject")} />
-                </SelectTrigger>
-                <SelectContent>
-                  {projects?.map((project) => (
-                    <SelectItem key={project.id} value={project.id}>
-                      {project.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </FormField>
+              {/* Project */}
+              <FormField label={t("form.project")} required error={errors.projectId}>
+                <Select value={formData.projectId} onValueChange={(value) => handleFieldChange("projectId", value)}>
+                  <SelectTrigger className={`h-12 ${errors.projectId ? "border-destructive" : ""}`}>
+                    <SelectValue placeholder={t("incident.selectProject")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {projects?.map((project) => (
+                      <SelectItem key={project.id} value={project.id}>
+                        {project.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormField>
 
-            {/* Creator */}
-            <FormField label={t("form.createdBy")}>
-              <Input
-                value={currentUser?.name || ""}
-                disabled
-                className="h-12 bg-muted"
-              />
-            </FormField>
+              {/* Creator */}
+              <FormField label={t("form.createdBy")}>
+                <Input
+                  value={currentUser?.name || ""}
+                  disabled
+                  className="h-12 bg-muted"
+                />
+              </FormField>
 
-            {/* Event Date */}
-            <FormField label={t("incident.eventDate")} required error={errors.eventDate}>
-              <Input
-                type="date"
-                value={formData.eventDate}
-                onChange={(e) => handleFieldChange("eventDate", e.target.value)}
-                className={`h-12 ${errors.eventDate ? "border-destructive" : ""}`}
-              />
-            </FormField>
+              {/* Date (new field) */}
+              <FormField label={t("form.date")} required>
+                <Input
+                  type="date"
+                  value={formData.date}
+                  onChange={(e) => handleFieldChange("date", e.target.value)}
+                  className="h-12"
+                />
+              </FormField>
 
-            {/* Status */}
-            <FormField label={t("form.status")} required>
-              <Select value={formData.status} onValueChange={(value: any) => handleFieldChange("status", value)}>
-                <SelectTrigger className="h-12">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="draft">{t("status.draft")}</SelectItem>
-                  <SelectItem value="in-progress">{t("status.inProgress")}</SelectItem>
-                  <SelectItem value="submitted">{t("status.submitted")}</SelectItem>
-                </SelectContent>
-              </Select>
-            </FormField>
+              {/* Event Date */}
+              <FormField label={t("incident.eventDate")} required error={errors.eventDate}>
+                <Input
+                  type="date"
+                  value={formData.eventDate}
+                  onChange={(e) => handleFieldChange("eventDate", e.target.value)}
+                  className={`h-12 ${errors.eventDate ? "border-destructive" : ""}`}
+                />
+              </FormField>
 
-            {/* Location */}
-            <FormField label={t("incident.location")} required error={errors.location}>
-              <Input
-                value={formData.location}
-                onChange={(e) => handleFieldChange("location", e.target.value)}
-                placeholder={t("incident.locationPlaceholder")}
-                className={`h-12 ${errors.location ? "border-destructive" : ""}`}
-              />
-            </FormField>
+              {/* Status */}
+              <FormField label={t("form.status")} required>
+                <Select value={formData.status} onValueChange={(value: any) => handleFieldChange("status", value)}>
+                  <SelectTrigger className="h-12">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="draft">{t("status.draft")}</SelectItem>
+                    <SelectItem value="in-progress">{t("status.inProgress")}</SelectItem>
+                    <SelectItem value="submitted">{t("status.submitted")}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormField>
 
-            {/* Event Time */}
-            <FormField label={t("incident.eventTime")} required error={errors.eventTime}>
-              <Input
-                type="time"
-                value={formData.eventTime}
-                onChange={(e) => handleFieldChange("eventTime", e.target.value)}
-                className={`h-12 ${errors.eventTime ? "border-destructive" : ""}`}
-              />
-            </FormField>
+              {/* Location */}
+              <FormField label={t("incident.location")} required error={errors.location}>
+                <Input
+                  value={formData.location}
+                  onChange={(e) => handleFieldChange("location", e.target.value)}
+                  placeholder={t("incident.locationPlaceholder")}
+                  className={`h-12 ${errors.location ? "border-destructive" : ""}`}
+                />
+              </FormField>
 
-            {/* Accident Type */}
-            <FormField label={t("incident.accidentType")} required error={errors.accidentType}>
-              <Select value={formData.accidentType} onValueChange={(value) => handleFieldChange("accidentType", value)}>
-                <SelectTrigger className={`h-12 ${errors.accidentType ? "border-destructive" : ""}`}>
-                  <SelectValue placeholder={t("incident.selectAccidentType")} />
-                </SelectTrigger>
-                <SelectContent>
-                  {accidentTypes?.map((type) => (
-                    <SelectItem key={type.id} value={type.id}>
-                      <div className="flex items-center gap-2">
-                        <span>{type.label}</span>
-                        {type.riskLevel === "critical" && (
-                          <span className="text-xs bg-destructive/20 text-destructive px-2 py-1 rounded">{t("incident.critical")}</span>
-                        )}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {formData.accidentType && (
-                <p className="text-sm text-muted-foreground mt-1">{getAccidentTypeDescription(formData.accidentType)}</p>
-              )}
-            </FormField>
+              {/* Event Time */}
+              <FormField label={t("incident.eventTime")} required error={errors.eventTime}>
+                <Input
+                  type="time"
+                  value={formData.eventTime}
+                  onChange={(e) => handleFieldChange("eventTime", e.target.value)}
+                  className={`h-12 ${errors.eventTime ? "border-destructive" : ""}`}
+                />
+              </FormField>
 
-            {/* Concerned Company */}
-            <FormField label={t("observation.concernedCompany")}>
-              <Input
-                value={formData.concernedCompany}
-                onChange={(e) => handleFieldChange("concernedCompany", e.target.value)}
-                placeholder={t("incident.concernedCompanyPlaceholder")}
-                className="h-12"
-              />
-            </FormField>
-          </div>
-        </FormSection>
+              {/* Accident Type */}
+              <FormField label={t("incident.accidentType")} required error={errors.accidentType}>
+                <Select value={formData.accidentType} onValueChange={(value) => handleFieldChange("accidentType", value)}>
+                  <SelectTrigger className={`h-12 ${errors.accidentType ? "border-destructive" : ""}`}>
+                    <SelectValue placeholder={t("incident.selectAccidentType")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {accidentTypes?.map((type) => (
+                      <SelectItem key={type.id} value={type.id}>
+                        <div className="flex items-center gap-2">
+                          <span>{type.label}</span>
+                          {type.riskLevel === "critical" && (
+                            <span className="text-xs bg-destructive/20 text-destructive px-2 py-1 rounded">{t("incident.critical")}</span>
+                          )}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {formData.accidentType && (
+                  <p className="text-sm text-muted-foreground mt-1">{getAccidentTypeDescription(formData.accidentType)}</p>
+                )}
+              </FormField>
 
-        {/* Description Section */}
+              {/* Concerned Company */}
+              <FormField label={t("observation.concernedCompany")}>
+                <Input
+                  value={formData.concernedCompany}
+                  onChange={(e) => handleFieldChange("concernedCompany", e.target.value)}
+                  placeholder={t("incident.concernedCompanyPlaceholder")}
+                  className="h-12"
+                />
+              </FormField>
+            </div>
+          </FormSection>
+
+        {/* Description Section (with attachments) */}
         <FormSection
           title={t("form.description")}
           collapsible={true}
           defaultOpen={true}
         >
-          <FormField
-            label={t("incident.whatHappened")}
-            required
-            error={errors.description}
-            description={t("incident.whatHappenedDesc")}
-          >
-            <Textarea
-              value={formData.description}
-              onChange={(e) => handleFieldChange("description", e.target.value)}
-              placeholder={t("incident.descriptionPlaceholder")}
-              rows={8}
-              className={`min-h-[200px] ${errors.description ? "border-destructive" : ""}`}
-            />
-          </FormField>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              label={t("incident.whatHappened")}
+              required
+              error={errors.description}
+              description={t("incident.whatHappenedDesc")}
+              className="col-span-1"
+            >
+              <Textarea
+                value={formData.description}
+                onChange={(e) => handleFieldChange("description", e.target.value)}
+                placeholder={t("incident.descriptionPlaceholder")}
+                rows={8}
+                className={`min-h-50 ${errors.description ? "border-destructive" : ""}`}
+              />
+            </FormField>
+            <div className="col-span-1 flex flex-col gap-2">
+              <AttachmentUpload
+                attachments={formData.attachments}
+                onChange={(attachments) => handleFieldChange("attachments", attachments)}
+              />
+            </div>
+          </div>
         </FormSection>
 
         {/* Investigation Section */}
@@ -630,38 +650,31 @@ export default function NewIncidentPage() {
                   </FormField>
                 </div>
 
-                {/* Row 3: Date de retour au travail | Date du décès */}
+                {/* Row 3: Date de retour au travail | Date du décès (optional) */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {!isFatal && (
-                    <FormField
-                      label={t("incident.returnToWorkDate")}
-                      description={t("incident.returnDateDesc")}
-                      error={errors.returnToWorkDate}
-                    >
-                      <Input
-                        type="date"
-                        value={formData.returnToWorkDate}
-                        onChange={(e) => handleFieldChange("returnToWorkDate", e.target.value)}
-                        className={`h-12 ${errors.returnToWorkDate ? "border-destructive" : ""}`}
-                      />
-                    </FormField>
-                  )}
-
-                  {isFatal && (
-                    <FormField
-                      label={t("incident.dateOfDeath")}
-                      required
-                      error={errors.dateOfDeath}
-                      description={t("incident.dateOfDeathDesc")}
-                    >
-                      <Input
-                        type="date"
-                        value={formData.dateOfDeath}
-                        onChange={(e) => handleFieldChange("dateOfDeath", e.target.value)}
-                        className={`h-12 ${errors.dateOfDeath ? "border-destructive" : ""}`}
-                      />
-                    </FormField>
-                  )}
+                  <FormField
+                    label={t("incident.returnToWorkDate")}
+                    description={t("incident.returnDateDesc")}
+                    error={errors.returnToWorkDate}
+                  >
+                    <Input
+                      type="date"
+                      value={formData.returnToWorkDate}
+                      onChange={(e) => handleFieldChange("returnToWorkDate", e.target.value)}
+                      className={`h-12 ${errors.returnToWorkDate ? "border-destructive" : ""}`}
+                    />
+                  </FormField>
+                  <FormField
+                    label={t("incident.dateOfDeath")}
+                    description={t("incident.dateOfDeathDesc")}
+                  >
+                    <Input
+                      type="date"
+                      value={formData.dateOfDeath}
+                      onChange={(e) => handleFieldChange("dateOfDeath", e.target.value)}
+                      className="h-12"
+                    />
+                  </FormField>
                 </div>
 
                 {/* Row 4: Fournisseur de traitement | Centre de traitement & adresse */}

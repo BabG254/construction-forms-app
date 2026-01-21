@@ -55,9 +55,9 @@ export default function LoginPage() {
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <img src="/logo.png" alt="Logo" className="h-16 w-16 object-contain" />
+            <img src="/logo.png" alt="Logo" className="h-24 w-24 object-contain" />
           </div>
-          <CardTitle className="text-2xl">Interlag - Soft</CardTitle>
+          <CardTitle className="text-2xl font-bold">INTERLAG</CardTitle>
           <CardDescription>{t("loginTitle")}</CardDescription>
         </CardHeader>
         <CardContent>

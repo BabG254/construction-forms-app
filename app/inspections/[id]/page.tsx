@@ -10,7 +10,7 @@ import { FormSection } from "@/components/forms/form-section"
 import { InspectionSummary } from "@/components/forms/inspection-summary"
 import { Badge } from "@/components/ui/badge"
 import { useLocale } from "@/lib/locale-context"
-import { exportElementAsPdf } from "@/lib/pdf"
+import { exportInspectionAsPdf } from "@/lib/pdf"
 import { useAppStore, inspectionSections } from "@/lib/store"
 import { cn, distanceToNowLocalized, formatLocalized } from "@/lib/utils"
 
@@ -71,11 +71,12 @@ export default function InspectionDetailPage({ params }: { params: Promise<{ id:
 
   return (
     <AppShell>
+
       <FormHeader
         title={inspection.documentTitle || "Inspection"}
         backHref="/inspections"
         onEdit={() => router.push(`/inspections/${id}/edit`)}
-        onExportPdf={() => exportElementAsPdf({ elementId: "form-detail", filename: `${(inspection.documentTitle || "Inspection")}-${locale}.pdf` })}
+        onExportPdf={() => exportInspectionAsPdf(inspection, `${(inspection.documentTitle || "Inspection")}-${locale}.pdf`)}
       />
 
       <div id="form-detail" className="p-4 md:p-6 lg:p-8 max-w-4xl mx-auto space-y-6">

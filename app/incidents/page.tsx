@@ -18,10 +18,10 @@ import { AppShell } from "@/components/app-shell"
 import { toast } from "sonner"
 
 const statusVariants: Record<string, string> = {
-  draft: "bg-blue-100 text-blue-800 dark:bg-blue-900",
-  open: "bg-red-100 text-red-800 dark:bg-red-900",
-  "in-progress": "bg-yellow-100 text-yellow-800 dark:bg-yellow-900",
-  closed: "bg-green-100 text-green-800 dark:bg-green-900",
+  draft: "bg-blue-500 text-white",
+  open: "bg-red-500 text-white",
+  "in-progress": "bg-yellow-500 text-white",
+  closed: "bg-green-600 text-white",
 }
 
 // Helper function to convert status key to translation key
@@ -181,8 +181,8 @@ export default function IncidentsPage() {
                         <p className="font-medium">{format(new Date(incident.eventDate), "MMM d")}</p>
                       </div>
                       <div>
-                        <span className="text-muted-foreground">{t("field.injuries")}</span>
-                        <p className="font-medium">{incident.injuriesCount || "0"}</p>
+                        <span className="text-muted-foreground">{t("form.project")}</span>
+                        <p className="font-medium">{project?.name || "-"}</p>
                       </div>
                     </div>
 

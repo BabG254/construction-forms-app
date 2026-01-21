@@ -60,7 +60,7 @@ export default function NewObservation() {
     title: "",
     type: "",
     projectId: (projects && Array.isArray(projects) && projects.length > 0) ? projects[0]?.id : "",
-    projectNumber: "",
+    projectNumber: projects && Array.isArray(projects) && projects.length > 0 ? projects[0]?.code || "" : "",
     description: "",
     priority: "medium",
     status: "draft",
@@ -93,6 +93,14 @@ export default function NewObservation() {
     return Object.keys(newErrors).length === 0
   }, [formData])
 
+  // Auto-generate project number when project changes
+  useEffect(() => {
+    const selected = projects?.find((p) => p.id === formData.projectId)
+    if (selected && selected.code && formData.projectNumber !== selected.code) {
+      setFormData((prev) => ({ ...prev, projectNumber: selected.code }))
+    }
+  }, [formData.projectId, projects])
+
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault()
@@ -107,7 +115,6 @@ export default function NewObservation() {
       try {
         // Build distribution list from selected users and groups
         const distributionList: string[] = [...selectedUserIds]
-        
         // Add all members from selected groups
         selectedGroupIds.forEach((groupId) => {
           const group = userGroups.find((g) => g.id === groupId)
@@ -115,17 +122,23 @@ export default function NewObservation() {
             distributionList.push(...group.memberIds)
           }
         })
-        
         // Remove duplicates
         const uniqueDistribution = Array.from(new Set(distributionList))
-        
+
+        // Auto-generate project number if not set
+        let projectNumber = formData.projectNumber
+        if (!projectNumber) {
+          const selected = projects?.find((p) => p.id === formData.projectId)
+          if (selected && selected.code) projectNumber = selected.code
+        }
+
         const observation: Observation = {
           id: crypto.randomUUID(),
           number: `OBS-${Date.now().toString().slice(-6)}`,
           title: formData.title,
           type: formData.type,
           projectId: formData.projectId,
-          projectNumber: formData.projectNumber,
+          projectNumber,
           creatorId: currentUser?.id || "unknown",
           assignedPersonId: currentUser?.id || "unknown",
           priority: formData.priority,
@@ -160,7 +173,7 @@ export default function NewObservation() {
         setIsSubmitting(false)
       }
     },
-    [formData, validateForm, addObservation, currentUser, router, selectedUserIds, selectedGroupIds, sendNotifications, userGroups, authUsers],
+    [formData, validateForm, addObservation, currentUser, router, selectedUserIds, selectedGroupIds, sendNotifications, userGroups, authUsers, projects],
   )
 
   // Email notification function (simulated for now)
@@ -192,7 +205,6 @@ export default function NewObservation() {
         type: formData.type,
         projectId: formData.projectId,
         projectNumber: formData.projectNumber,
-        location: formData.location,
         description: formData.description,
         priority: formData.priority,
         concernedCompany: formData.concernedCompany,
@@ -203,7 +215,11 @@ export default function NewObservation() {
         updatedAt: new Date(),
         status: "draft" as const,
         syncStatus: "pending",
-        createdBy: currentUser?.name || "Unknown",
+        creatorId: currentUser?.id || "unknown",
+        assignedPersonId: currentUser?.id || "unknown",
+        distribution: [],
+        dueDate: null,
+        completionDate: null,
       }
       addObservation(observation)
       alert(t("status.savedLocally"))
@@ -211,7 +227,7 @@ export default function NewObservation() {
     } catch (error) {
       alert(t("alert.saveDraft.error"))
     }
-  }, [formData.title, formData.type, formData.projectId, formData.projectNumber, formData.location, formData.description, formData.priority, formData.concernedCompany, formData.referenceArticle, formData.safetyAnalysis, addObservation, currentUser, router, t])
+  }, [formData.title, formData.type, formData.projectId, formData.projectNumber, formData.description, formData.priority, formData.concernedCompany, formData.referenceArticle, formData.safetyAnalysis, addObservation, currentUser, router, t])
 
   return (
     <AppShell>
@@ -304,11 +320,11 @@ export default function NewObservation() {
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <FormField label={t("observation.projectNumber")}>
+            <FormField label={t("observation.projectNumber")}> 
               <Input
                 value={formData.projectNumber}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData((prev) => ({ ...prev, projectNumber: e.target.value }))}
-                placeholder={t("form.description")}
+                placeholder={t("observation.projectNumber")}
               />
             </FormField>
 
@@ -350,19 +366,21 @@ export default function NewObservation() {
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <FormField label={t("observation.dueDate")}>
+            <FormField label={t("observation.dueDate")}> 
               <Input
                 type="date"
                 value={formData.dueDate}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData((prev) => ({ ...prev, dueDate: e.target.value }))}
+                placeholder={t("observation.dueDate")}
               />
             </FormField>
 
-            <FormField label={t("observation.completionDate")}>
+            <FormField label={t("observation.completionDate")}> 
               <Input
                 type="date"
                 value={formData.completionDate}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData((prev) => ({ ...prev, completionDate: e.target.value }))}
+                placeholder={t("observation.completionDate")}
               />
             </FormField>
           </div>
@@ -392,31 +410,18 @@ export default function NewObservation() {
               />
             </FormField>
 
-            <FormField label={t("observation.referenceArticleLabel")}>
+            <FormField label={t("observation.referenceArticle")}> 
               <Input
                 value={formData.referenceArticle}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData((prev) => ({ ...prev, referenceArticle: e.target.value }))}
-                placeholder={t("observation.referenceArticlePlaceholder")}
+                placeholder={t("observation.referenceArticle")}
               />
             </FormField>
 
             <FormField label={t("form.attachments")}>
               <AttachmentUpload
-                onFilesAdded={(files: File[]) => {
-                  const newAttachments = files.map((file) => ({
-                    id: `att-${Date.now()}-${Math.random()}`,
-                    name: file.name,
-                    type: file.type,
-                    size: file.size,
-                    url: URL.createObjectURL(file),
-                    uploadedAt: new Date(),
-                  }))
-                  setFormData((prev) => ({ ...prev, attachments: [...prev.attachments, ...newAttachments] }))
-                }}
                 attachments={formData.attachments}
-                onRemove={(id: string) => {
-                  setFormData((prev) => ({ ...prev, attachments: prev.attachments.filter((a) => a.id !== id) }))
-                }}
+                onChange={(attachments) => setFormData((prev) => ({ ...prev, attachments }))}
               />
             </FormField>
           </div>

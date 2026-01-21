@@ -95,6 +95,7 @@ export interface Incident {
   projectId: string
   creatorId: string
   location: string
+  date: string // new field for form/report date
   eventDate: Date
   eventTime: string
   accidentType: string

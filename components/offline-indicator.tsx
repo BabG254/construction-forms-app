@@ -33,10 +33,10 @@ export function OfflineIndicator({ variant = "minimal", className }: OfflineIndi
   }
 
   return (
-    <div className={cn("flex items-center gap-3 p-3 rounded-lg border", className, !isOnline && "bg-destructive/5")}>
+    <div className={cn("flex items-center gap-3 p-4 rounded-lg border", className, !isOnline && "bg-destructive/5")}>
       <div
         className={cn(
-          "flex items-center justify-center w-10 h-10 rounded-lg",
+          "flex items-center justify-center w-10 h-10 rounded-lg shrink-0",
           isOnline ? "bg-accent/10" : "bg-destructive/10",
         )}
       >
@@ -51,10 +51,10 @@ export function OfflineIndicator({ variant = "minimal", className }: OfflineIndi
         )}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium">
+        <p className="text-sm font-semibold">
           {isOnline ? (isSyncing ? t("status.syncing") : t("status.online")) : t("status.offline")}
         </p>
-        <p className="text-xs text-muted-foreground">
+        <p className="text-xs text-muted-foreground mt-0.5">
           {pendingChanges > 0
             ? t("sync.pendingChanges", { count: pendingChanges })
             : lastSyncTime
@@ -63,7 +63,7 @@ export function OfflineIndicator({ variant = "minimal", className }: OfflineIndi
         </p>
       </div>
       {isOnline && pendingChanges > 0 && (
-        <Button variant="outline" size="sm" onClick={syncNow} disabled={isSyncing}>
+        <Button variant="outline" size="sm" onClick={syncNow} disabled={isSyncing} className="shrink-0 px-3">
           {isSyncing ? t("sync.syncing") : t("sync.syncNow")}
         </Button>
       )}

@@ -17,16 +17,17 @@ import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 
 const priorityVariants: Record<string, string> = {
-  low: "bg-green-100 text-green-800 dark:bg-green-900",
-  medium: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900",
-  high: "bg-red-100 text-red-800 dark:bg-red-900",
+  low: "bg-green-600 text-white dark:bg-green-700",
+  medium: "bg-yellow-500 text-white dark:bg-yellow-600",
+  high: "bg-red-600 text-white dark:bg-red-700",
 }
 
 const statusVariants: Record<string, string> = {
-  draft: "bg-blue-100 text-blue-800 dark:bg-blue-900",
-  submitted: "bg-green-100 text-green-800 dark:bg-green-900",
-  archived: "bg-gray-100 text-gray-800 dark:bg-gray-900",
-  open: "bg-blue-100 text-blue-800 dark:bg-blue-900",
+  draft: "bg-blue-600 text-white dark:bg-blue-700",
+  "in-progress": "bg-indigo-600 text-white dark:bg-indigo-700",
+  submitted: "bg-green-600 text-white dark:bg-green-700",
+  archived: "bg-gray-500 text-white dark:bg-gray-600",
+  open: "bg-blue-600 text-white dark:bg-blue-700",
 }
 
 // Helper function to convert status key to translation key
@@ -168,12 +169,12 @@ export default function ObservationsPage() {
 
                       <div className="grid grid-cols-2 gap-2 mb-4 text-xs">
                         <div>
-                          <span className="text-muted-foreground">{t("field.type")}</span>
-                          <p className="font-medium">{observation.type ? t(`observation.type.${observation.type}` as any) : "-"}</p>
+                          <span className="text-muted-foreground">{t("observation.projectNumber")}</span>
+                          <p className="font-medium">{observation.projectNumber || project?.code || "-"}</p>
                         </div>
                         <div>
-                          <span className="text-muted-foreground">{t("field.location")}</span>
-                          <p className="font-medium">{observation.location}</p>
+                          <span className="text-muted-foreground">{t("form.project")}</span>
+                          <p className="font-medium">{project?.name || "-"}</p>
                         </div>
                       </div>
 
@@ -191,7 +192,7 @@ export default function ObservationsPage() {
 
                       {/* Actions */}
                       <div className="flex gap-2 pt-3 flex-wrap">
-                        <Link href={`/observations/${observation.id}`} className="flex-1 min-w-[120px]">
+                        <Link href={`/observations/${observation.id}`} className="flex-1 min-w-30">
                           <Button variant="outline" size="sm" className="w-full gap-2">
                             <Edit2 className="h-4 w-4" />
                             {t("action.view")}

@@ -14,7 +14,7 @@ const translations = {
     "nav.settings": "Settings",
 
     // Dashboard
-    "dashboard.title": "Interlag - Soft",
+    "dashboard.title": "INTERLAG",
     "dashboard.subtitle": "Manage inspections, observations, and incidents",
     "dashboard.newInspection": "New Inspection",
     "dashboard.newObservation": "New Observation",
@@ -487,7 +487,7 @@ const translations = {
     "nav.settings": "Paramètres",
 
     // Dashboard
-    "dashboard.title": "Interlag - Soft",
+    "dashboard.title": "INTERLAG",
     "dashboard.subtitle": "Gérer les inspections, observations et incidents",
     "dashboard.newInspection": "Nouvelle inspection",
     "dashboard.newObservation": "Nouvelle observation",
@@ -508,7 +508,7 @@ const translations = {
     "status.submitted": "Soumis",
     "status.open": "Ouvert",
     "status.closed": "Fermé",
-    "status.inProgress": "En Progression",
+    "status.inProgress": "En Progress",
     "status.archived": "Archivé",
 
     // Form common

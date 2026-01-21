@@ -17,6 +17,7 @@ export function InspectionSummary({ sections, responses }: InspectionSummaryProp
   const nonConformingCount = responses.filter((r) => r.response === "non-conforming").length
   const naCount = responses.filter((r) => r.response === "not-applicable").length
   const answeredCount = conformingCount + nonConformingCount + naCount
+  const notAnsweredCount = totalItems - answeredCount
 
   const progressPercentage = totalItems > 0 ? Math.round((answeredCount / totalItems) * 100) : 0
 
@@ -43,7 +44,7 @@ export function InspectionSummary({ sections, responses }: InspectionSummaryProp
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-4 gap-3">
         <div className="flex flex-col items-center p-3 bg-accent/10 rounded-lg">
           <div className="flex items-center justify-center w-8 h-8 rounded-full bg-accent/20 mb-2">
             <Check className="h-4 w-4 text-accent" />
@@ -66,6 +67,14 @@ export function InspectionSummary({ sections, responses }: InspectionSummaryProp
           </div>
           <span className="text-2xl font-bold text-muted-foreground">{naCount}</span>
           <span className="text-xs text-muted-foreground text-center">{t("inspection.notApplicable")}</span>
+        </div>
+
+        <div className="flex flex-col items-center p-3 bg-muted/30 rounded-lg">
+          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-muted-foreground/10 mb-2">
+            <span className="h-4 w-4 text-muted-foreground font-bold">?</span>
+          </div>
+          <span className="text-2xl font-bold text-muted-foreground">{notAnsweredCount}</span>
+          <span className="text-xs text-muted-foreground text-center">{t("inspection.notAnswered" as any)}</span>
         </div>
       </div>
     </div>
