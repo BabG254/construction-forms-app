@@ -499,6 +499,7 @@ const translations = {
     "dashboard.noSubmissions": "Aucune soumission",
 
     // Status
+    "sync.allChangesSynced": "Tous les changements sont synchronisés",
     "status.online": "En ligne",
     "status.offline": "Hors ligne",
     "status.syncing": "Synchronisation...",
