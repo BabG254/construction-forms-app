@@ -50,12 +50,13 @@ export function SyncStatusBanner() {
   return (
     <div
       className={cn(
-        "fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 z-50",
-        "flex items-center gap-3 p-4 rounded-xl border shadow-lg backdrop-blur-sm",
+        "fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:max-w-md w-full z-50",
+        "flex flex-wrap items-center gap-3 p-4 rounded-xl border shadow-lg backdrop-blur-sm",
         isOnline 
           ? "bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800" 
           : "bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800",
       )}
+      style={{ boxSizing: 'border-box' }}
     >
       <div
         className={cn(
@@ -71,14 +72,14 @@ export function SyncStatusBanner() {
       </div>
 
       <div className="flex-1 min-w-0">
-        <p className={cn("font-semibold text-sm", isOnline ? "text-green-900 dark:text-green-100" : "text-red-900 dark:text-red-100")}>
+        <p className={cn("font-semibold text-sm break-words", isOnline ? "text-green-900 dark:text-green-100" : "text-red-900 dark:text-red-100")}> 
           {isOnline 
-            ? (isSyncing ? t("status.syncing") : `${pendingChanges} ${pendingChanges > 1 ? "changements en attente" : "changement en attente"}`)
+            ? (isSyncing ? t("status.syncing") : (lastSyncTime ? `Dernière synchronisation : ${formatLastSync()}` : "En attente de synchronisation"))
             : t("status.offline")}
         </p>
-        <p className={cn("text-xs", isOnline ? "text-green-700 dark:text-green-300" : "text-red-700 dark:text-red-300")}>
+        <p className={cn("text-xs break-words", isOnline ? "text-green-700 dark:text-green-300" : "text-red-700 dark:text-red-300")}> 
           {isOnline 
-            ? (lastSyncTime ? `Dernière synchronisation : ${formatLastSync()}` : "En attente de synchronisation")
+            ? null
             : t("status.localSaveInfo")}
         </p>
       </div>
