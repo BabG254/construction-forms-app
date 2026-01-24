@@ -25,34 +25,34 @@ const translations = {
     "dashboard.noDrafts": "No drafts yet",
     "dashboard.noSubmissions": "No submissions yet",
 
-    // Status
-    "status.online": "Online",
-    "status.offline": "Offline",
-    "status.syncing": "Syncing...",
-    "status.savedLocally": "Saved locally",
-    "status.syncedSuccessfully": "Synced successfully",
-    "status.draft": "Draft",
-    "status.submitted": "Submitted",
-    "status.open": "Open",
-    "status.closed": "Closed",
-    "status.inProgress": "In Progress",
-    "status.archived": "Archived",
-
-    // Form common
-    "form.save": "Save",
-    "form.saving": "Saving...",
-    "form.saveDraft": "Save Draft",
-    "form.submit": "Submit",
-    "form.cancel": "Cancel",
-    "form.delete": "Delete",
-    "form.edit": "Edit",
-    "form.required": "Required",
-    "form.attachments": "Attachments",
-    "form.addAttachment": "Add Attachment",
-    "form.comments": "Comments",
-    "form.description": "Description",
-    "form.title": "Title",
-    "form.project": "Project",
+    en: {
+      // Navigation
+      "nav.dashboard": "Dashboard",
+      "nav.siteForms": "Site Forms",
+      "nav.inspections": "Inspections",
+      "nav.observations": "Observations",
+      "nav.incidents": "Incidents",
+      "nav.settings": "Settings",
+      // ...existing code...
+      "status.inProgress": "In Progress",
+      // ...existing code...
+      "field.date": "Date",
+      // ...existing code...
+    },
+    fr: {
+      // Navigation
+      "nav.dashboard": "Tableau de bord",
+      "nav.siteForms": "Formulaires de chantier",
+      "nav.inspections": "Inspections",
+      "nav.observations": "Observations",
+      "nav.incidents": "Incidents",
+      "nav.settings": "Paramètres",
+      // ...existing code...
+      "status.inProgress": "En Progression",
+      // ...existing code...
+      "field.date": "Date",
+      // ...existing code...
+    },
     "form.createdBy": "Created By",
     "form.distribution": "Distribution",
     "form.closedBy": "Closed By",
@@ -289,6 +289,7 @@ const translations = {
     "field.photos": "Photos",
     "field.eventDate": "Event Date",
     "field.injuries": "Injuries",
+    "field.date": "Date",
 
     // Empty states
     "empty.noObservations": "No observations yet",
@@ -762,6 +763,7 @@ const translations = {
     "field.photos": "Photos",
     "field.eventDate": "Date de l'événement",
     "field.injuries": "Blessures",
+    "field.date": "Date",
 
     // Empty states
     "empty.noObservations": "Aucune observation",
